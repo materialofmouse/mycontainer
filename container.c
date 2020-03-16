@@ -8,43 +8,48 @@
 #include<sys/mount.h>
 #include<fcntl.h>
 
+const unsigned int UNSHARE_FLAGS = ( CLONE_FILES | CLONE_NEWIPC | CLONE_NEWNS | CLONE_NEWUTS | CLONE_NEWPID); 
+
+
 int main(){
   pid_t pid;
   int status;
-	int unshare_flags = ( CLONE_FILES | CLONE_NEWIPC | CLONE_NEWNS | CLONE_NEWUTS | CLONE_NEWPID); 
-	if( unshare(unshare_flags) == -1){
+	if( unshare(UNSHARE_FLAGS) == -1){
 		perror("unshare");
 		return 1;
 	}
-  if ((pid = fork()) < 0) {
+  if( (pid = fork()) < 0) {
     perror("fork");
     return 1;
   }
-	//cgroup
-	/*if( mkdir("/sys/fs/cgroup/container", 0644) != 0){
-		perror("mkdir");
-		return 1;
-	}*/
-	int fd;
-	fd = open("/sys/fs/cgroup/container/cgroup.procs", O_WRONLY | O_CREAT);
-	if( fd == -1){
-		perror("open");
-		return 1;
+	//make cgroup
+	if( access("/sys/fs/cgroup/container", F_OK) != 0){
+		if( mkdir("/sys/fs/cgroup/container", 0644) != 0){
+			perror("mkdir");
+			return 1;
+		}
 	}
+
+	int fd;
+	//プロセスの登録
+	fd = open("/sys/fs/cgroup/container/cgroup.procs", O_WRONLY);
+	if( fd == -1){ perror("open"); return 1; }
 	int _pid = getpid();
 	char buff[6];
 	snprintf(buff, 6 , "%d", _pid);
 	write(fd, buff, 6);
 	close(fd);
-	
-	fd = open("/sys/fs/cgroup/container/cpu.max", O_WRONLY);
-	if (fd == -1){
-		perror("cpu open");
-		return 1;
-	}
-	write(fd, "10000", 6);
+	//サブシステムの登録
+	fd = open("/sys/fs/cgroup/cgroup.subtree_control", O_WRONLY);
+	if (fd == -1){ perror("subtree error"); return 1;}
+	write(fd, "+cpu", 5);
 	close(fd);
-	//cgroup v1 is mounted already on debian 10
+	//CPU制限
+	fd = open("/sys/fs/cgroup/container/cpu.max", O_WRONLY);
+	if (fd == -1){ perror("cpu open"); return 1; }
+	write(fd, "10000", 6);//このサーバーの場合
+	close(fd);
+
 	//child process
   if (pid == 0) {
     printf("child process:%d\n",(int)getpid());
