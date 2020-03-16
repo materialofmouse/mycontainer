@@ -1,4 +1,6 @@
 #define _GNU_SOURCE
+#define _LINUX_CAPABILITY_VERSION_3 0x20080522
+#define _LINUX_CAPABILITY_U32S_2 2
 #include<sys/types.h>
 #include<sys/wait.h>
 #include<sys/stat.h>
@@ -7,6 +9,19 @@
 #include<sched.h>
 #include<sys/mount.h>
 #include<fcntl.h>
+#include</usr/include/linux/capability.h>
+
+typedef struct __user_cap_header_struct {
+	__u32 version;
+	int pid;
+} *cap_user_header_t;
+
+typedef struct __user_cap_data_struct {
+	__u32 effective;
+	__u32 permitted;
+	__u32 inheritab;
+} *cap_user_data_t;
+
 
 const unsigned int UNSHARE_FLAGS = ( CLONE_FILES | CLONE_NEWIPC | CLONE_NEWNS | CLONE_NEWUTS | CLONE_NEWPID); 
 
@@ -51,6 +66,12 @@ int main(){
 	if (fd == -1){ perror("cpu open"); return 1; }
 	write(fd, "10000", 6);//このサーバーの場合
 	close(fd);
+
+	//capability header
+	cap_user_header_t.version = 3;
+	cap_user_header_t.pid = _pid;
+
+	//capability data
 
 	//child process
   if (pid == 0) {
