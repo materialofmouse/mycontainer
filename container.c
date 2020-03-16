@@ -39,11 +39,13 @@ int main(){
 	snprintf(buff, 6 , "%d", _pid);
 	write(fd, buff, 6);
 	close(fd);
+	
 	//サブシステムの登録
 	fd = open("/sys/fs/cgroup/cgroup.subtree_control", O_WRONLY);
 	if (fd == -1){ perror("subtree error"); return 1;}
 	write(fd, "+cpu", 5);
 	close(fd);
+	
 	//CPU制限
 	fd = open("/sys/fs/cgroup/container/cpu.max", O_WRONLY);
 	if (fd == -1){ perror("cpu open"); return 1; }
@@ -62,10 +64,10 @@ int main(){
 			perror("chroot");
 			return 1;
 		}
-		//if (mount("proc", "/proc", "proc", 0, NULL) != 0){
-		//		perror("mount");
-		//		return 1;
-		//}
+		if (mount("proc", "/proc", "proc", 0, NULL) != 0){
+				perror("mount");
+				return 1;
+		}
 
 		execl("/bin/bash","a",NULL);
     perror("bash");
