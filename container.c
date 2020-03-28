@@ -1,6 +1,4 @@
 #define _GNU_SOURCE
-//#define _LINUX_CAPABILITY_VERSION_3 0x20080522
-//#define _LINUX_CAPABILITY_U32S_2 2
 #include<sys/types.h>
 #include<sys/wait.h>
 #include<sys/stat.h>
@@ -15,8 +13,8 @@ const unsigned int UNSHARE_FLAGS = ( CLONE_FILES | CLONE_NEWIPC | CLONE_NEWNS | 
 
 
 int main(){
-  pid_t pid;
-  int status;
+	pid_t pid;
+	int status;
 	if( unshare(UNSHARE_FLAGS) == -1){
 		perror("unshare");
 		return 1;
@@ -56,12 +54,20 @@ int main(){
 	close(fd);
 
 	//capability header
-	cap_user_header_t hdrp;// = {_LINUX_CAPABILITY_VERSION_3,_pid};
-	cap_user_data_t datap;// = {};
-	int err = capget(hdrp, datap);
-	//printf("%d\n", hdrp->pid);
-	//capability data
+	cap_user_header_t hdrp;
+	cap_user_header_t h_obj;
+	hdrp = &h_obj;
+	hdrp->version = _LINUX_CAPABILITY_VERSION_3;
+	hdrp->pid = _pid;
 
+	//capability data 
+	cap_user_data_t datap;
+	cap_user_data_t d_obj;
+	datap = &d_obj;
+	int err = capget(hdrp, datap);
+	perror("capget");
+	printf("effective-> %d\n",datap->permitted);
+		
 	//child process
   if (pid == 0) {
     printf("child process:%d\n",(int)getpid());
@@ -81,10 +87,9 @@ int main(){
 
 		execl("/bin/bash","a",NULL);
     perror("bash");
-    //_exit(1);
   }
 
-  printf("parrent proces:%d\n",(int)getpid());
+  printf("parrent process:%d\n",(int)getpid());
   if ((pid = waitpid(pid,&status,0)) < 0) {
     perror("wait");
     return 1;

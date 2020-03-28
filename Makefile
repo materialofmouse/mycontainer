@@ -3,3 +3,6 @@ container: container.c
 
 test : test.c
 	gcc test.c -o test
+
+run :
+	sudo ./container
