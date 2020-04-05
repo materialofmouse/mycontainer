@@ -53,29 +53,35 @@ int main(){
 	write(fd, "10000", 6);//このサーバーの場合
 	close(fd);
 
-	//capability header
-	cap_user_header_t hdrp;
-	cap_user_header_t h_obj;
-	hdrp = &h_obj;
-	hdrp->version = _LINUX_CAPABILITY_VERSION_3;
-	hdrp->pid = 0;
-
-	//capability data 
-	cap_user_data_t datap;
-	cap_user_data_t d_obj;
-	datap = &d_obj;
-	int err;
-	datap->effective = 0;
-	datap->effective = datap->effective | (1 >> CAP_NET_RAW);
-	err = capset(hdrp, datap);
-	perror("capset");
-	//err = capget(hdrp, datap);
-	//perror("capget");
-	printf("effective-> %lld\n",datap->effective);
-		
+			
 	//child process
   if (pid == 0) {
-    printf("child process:%d\n",(int)getpid());
+    //capability header
+		cap_user_header_t hdrp;
+		cap_user_header_t h_obj;
+		hdrp = &h_obj;
+		hdrp->version = _LINUX_CAPABILITY_VERSION_3;
+		hdrp->pid = 1;
+
+		//capability data 
+		cap_user_data_t datap;
+		cap_user_data_t d_obj;
+		datap = &d_obj;
+		int err;
+		datap->permitted = 0;
+		datap->permitted = datap->permitted | (1 << CAP_NET_RAW) | (1 << CAP_SYS_CHROOT) | (1 << CAP_SETFCAP);
+		datap->inheritable = datap->permitted;
+		datap->effective = 1;
+		err = capset(hdrp, datap);
+		perror("capset");
+		//err = capget(hdrp, datap);
+		//perror("capget");
+		printf("effective-> %d\n",datap->effective);
+		printf("permitted-> %lld\n",datap->permitted);
+		printf("inheritable-> %lld\n",datap->inheritable);
+			
+
+		printf("child process:%d\n",(int)getpid());
     sethostname("container",9);
 		if (chdir("/home/mouse/container/debian") != 0){
 			perror("chdir");
