@@ -7,13 +7,43 @@
 #include<sched.h>
 #include<sys/mount.h>
 #include<fcntl.h>
+#include<errno.h>
 #include</usr/include/linux/capability.h>
 
 const unsigned int UNSHARE_FLAGS = ( CLONE_FILES | CLONE_NEWIPC | CLONE_NEWNS | CLONE_NEWUTS | CLONE_NEWPID); 
 
 
 int main(){
-	pid_t pid;
+	pid_t pid = getpid();
+	errno = 0;
+	
+	cap_user_header_t hdrp;
+	cap_user_header_t h_obj;
+	hdrp = &h_obj;
+	hdrp->version = _LINUX_CAPABILITY_VERSION_3;
+	hdrp->pid = (int)pid;
+
+	cap_user_data_t datap;
+	cap_user_data_t d_obj;
+	datap = &d_obj;
+	datap->permitted = (1 << CAP_NET_RAW) | (1 << CAP_SYS_CHROOT);
+	datap->inheritable = datap->permitted;
+	datap->effective = datap->permitted;
+	printf("effective-> %lld\n",datap->effective);
+	printf("permitted-> %lld\n",datap->permitted);
+	printf("inheritable-> %lld\n",datap->inheritable);
+	int err;
+	err = capset(hdrp, datap);
+	printf("errno:%d\n",errno);
+	perror("capset");
+	err = capget(hdrp, datap);
+	printf("errno:%d\n",errno);
+	perror("capget");
+	printf("effective-> %lld\n",datap->effective);
+	printf("permitted-> %lld\n",datap->permitted);
+	printf("inheritable-> %lld\n",datap->inheritable);
+
+
 	int status;
 	if( unshare(UNSHARE_FLAGS) == -1){
 		perror("unshare");
@@ -53,33 +83,8 @@ int main(){
 	write(fd, "10000", 6);//このサーバーの場合
 	close(fd);
 
-			
 	//child process
   if (pid == 0) {
-    //capability header
-		cap_user_header_t hdrp;
-		cap_user_header_t h_obj;
-		hdrp = &h_obj;
-		hdrp->version = _LINUX_CAPABILITY_VERSION_3;
-		hdrp->pid = 1;
-
-		//capability data 
-		cap_user_data_t datap;
-		cap_user_data_t d_obj;
-		datap = &d_obj;
-		int err;
-		datap->permitted = 0;
-		datap->permitted = datap->permitted | (1 << CAP_NET_RAW) | (1 << CAP_SYS_CHROOT) | (1 << CAP_SETFCAP);
-		datap->inheritable = datap->permitted;
-		datap->effective = 1;
-		err = capset(hdrp, datap);
-		perror("capset");
-		err = capget(hdrp, datap);
-		perror("capget");
-		printf("effective-> %d\n",datap->effective);
-		printf("permitted-> %lld\n",datap->permitted);
-		printf("inheritable-> %lld\n",datap->inheritable);
-			
 
 		printf("child process:%d\n",(int)getpid());
     sethostname("container",9);
@@ -100,7 +105,7 @@ int main(){
     perror("bash");
   }
 
-  printf("parrent process:%d\n",(int)getpid());
+  printf("parrent process:%d\n",(int)pid);
   if ((pid = waitpid(pid,&status,0)) < 0) {
     perror("wait");
     return 1;
