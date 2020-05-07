@@ -74,8 +74,8 @@ int main(){
 		datap->effective = 1;
 		err = capset(hdrp, datap);
 		perror("capset");
-		//err = capget(hdrp, datap);
-		//perror("capget");
+		err = capget(hdrp, datap);
+		perror("capget");
 		printf("effective-> %d\n",datap->effective);
 		printf("permitted-> %lld\n",datap->permitted);
 		printf("inheritable-> %lld\n",datap->inheritable);
