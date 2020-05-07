@@ -17,31 +17,21 @@ int main(){
 	pid_t pid = getpid();
 	errno = 0;
 	
-	cap_user_header_t hdrp;
-	cap_user_header_t h_obj;
-	hdrp = &h_obj;
-	hdrp->version = _LINUX_CAPABILITY_VERSION_3;
-	hdrp->pid = (int)pid;
+	struct __user_cap_header_struct hdr = { 0 };
+	hdr.pid = 0;
+	hdr.version = _LINUX_CAPABILITY_VERSION_3;
 
-	cap_user_data_t datap;
-	cap_user_data_t d_obj;
-	datap = &d_obj;
-	datap->permitted = (1 << CAP_NET_RAW) | (1 << CAP_SYS_CHROOT);
-	datap->inheritable = datap->permitted;
-	datap->effective = datap->permitted;
-	printf("effective-> %lld\n",datap->effective);
-	printf("permitted-> %lld\n",datap->permitted);
-	printf("inheritable-> %lld\n",datap->inheritable);
+	struct __user_cap_data_struct data = { 0 };
+	data.permitted =  (1 << CAP_NET_RAW) | (1 << CAP_SYS_CHROOT) | (1 << CAP_SYS_ADMIN | (1 << CAP_SETPCAP));
+	data.inheritable = data.permitted;
+	data.effective = data.permitted;
 	int err;
-	err = capset(hdrp, datap);
+	err = capset(&hdr, &data);
 	printf("errno:%d\n",errno);
 	perror("capset");
-	err = capget(hdrp, datap);
-	printf("errno:%d\n",errno);
-	perror("capget");
-	printf("effective-> %lld\n",datap->effective);
-	printf("permitted-> %lld\n",datap->permitted);
-	printf("inheritable-> %lld\n",datap->inheritable);
+	//err = capget(hdrp, datap);
+	//printf("errno:%d\n",errno);
+	//perror("capget");
 
 
 	int status;
