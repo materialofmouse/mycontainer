@@ -22,17 +22,24 @@ int main(){
 	hdr.version = _LINUX_CAPABILITY_VERSION_3;
 
 	struct __user_cap_data_struct data = { 0 };
-	data.permitted =  (1 << CAP_NET_RAW) | (1 << CAP_SYS_CHROOT) | (1 << CAP_SYS_ADMIN | (1 << CAP_SETPCAP));
+	data.permitted =  (1 << CAP_NET_RAW) | (1 << CAP_SYS_CHROOT) | (1 << CAP_SYS_ADMIN);
 	data.inheritable = data.permitted;
 	data.effective = data.permitted;
-	int err;
-	err = capset(&hdr, &data);
-	printf("errno:%d\n",errno);
-	perror("capset");
-	//err = capget(hdrp, datap);
-	//printf("errno:%d\n",errno);
-	//perror("capget");
-
+	if(capset(&hdr, &data) < 0){
+		perror("capset");
+		printf("errno:%d\n",errno);
+	}
+	printf("effective:%lld\n",data.effective);
+	printf("inheritable:%lld\n",data.inheritable);
+	printf("permitted:%lld\n",data.permitted);
+	hdr.pid = (int)getpid();
+	if(capget(&hdr, &data) < 0){
+		perror("capget");
+		printf("errno:%d\n",errno);
+	}
+	printf("effective:%lld\n",data.effective);
+	printf("inheritable:%lld\n",data.inheritable);
+	printf("permitted:%lld\n",data.permitted);
 
 	int status;
 	if( unshare(UNSHARE_FLAGS) == -1){
