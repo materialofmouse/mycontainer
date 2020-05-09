@@ -16,8 +16,6 @@ const unsigned int UNSHARE_FLAGS = ( CLONE_FILES | CLONE_NEWIPC | CLONE_NEWNS | 
 int main(){
 	pid_t pid = getpid();
 	errno = 0;
-	
-
 
 	int status;
 	if( unshare(UNSHARE_FLAGS) < 0){
@@ -60,49 +58,31 @@ int main(){
 
 	//child process
   if (pid == 0) {
-		struct __user_cap_header_struct hdr = { 0 };
-		hdr.pid = (int)getpid();
-		hdr.version = _LINUX_CAPABILITY_VERSION_3;
+		//capability
+		cap_t caps;
+		const cap_value_t cap_list[3] = {CAP_SYS_ADMIN, CAP_NET_RAW, CAP_SYS_CHROOT};
 
-		struct __user_cap_data_struct data = { 0 };
-		data.permitted =  (1 << CAP_NET_RAW) | (1 << CAP_SYS_CHROOT) | (1 << CAP_SYS_ADMIN);
-		data.effective = data.permitted;
-		data.inheritable = data.permitted;
-		
-		if(capset(&hdr, &data) < 0){
-			perror("capset");
+		if(cap_get_proc() == NULL) {
+			printf("error:cap_get_proc\n");
 		}
-		printf("getpid:%d\n",(int)getpid());
-		printf("---------capset--------\n");
-		printf("pid:%d\n",hdr.pid);
-		printf("effective:%lld\n",data.effective);
-		printf("inheritable:%lld\n",data.inheritable);
-		printf("permitted:%lld\n",data.permitted);
-		printf("-----------------------\n");
-		
-		hdr.pid = (int)getpid();
-		if(capget(&hdr, &data) < 0){
-			perror("capget");
+		if(cap_set_flag (caps, CAP_EFFECTIVE, 3, cap_list, CAP_SET) == -1) {
+			printf("error:cap_set_flag\n");
 		}
-		printf("---------capget--------\n");
-		printf("pid:%d\n",hdr.pid);
-		printf("effective:%lld\n",data.effective);
-		printf("inheritable:%lld\n",data.inheritable);
-		printf("permitted:%lld\n",data.permitted);
-		printf("-----------------------\n");
-		
+		if(cap_set_proc (caps) == -1) {
+			printf("error:cap_set_proc\n");
+		}
 
 		printf("child process:%d\n",(int)getpid());
     sethostname("container",9);
-		if (chdir("/home/mouse/container/debian") < 0){
+		if (chdir("/home/mouse/container/debian") < 0) {
 			perror("chdir");
 			return 1;
 		}
-		if(chroot("/home/mouse/container/debian") < 0){
+		if(chroot("/home/mouse/container/debian") < 0) {
 			perror("chroot");
 			return 1;
 		}
-		if (mount("proc", "/proc", "proc", 0, NULL) < 0){
+		if (mount("proc", "/proc", "proc", 0, NULL) < 0) {
 				perror("mount");
 				return 1;
 		}
