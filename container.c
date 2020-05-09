@@ -17,34 +17,7 @@ int main(){
 	pid_t pid = getpid();
 	errno = 0;
 	
-	struct __user_cap_header_struct hdr = { 0 };
-	hdr.pid = (int)pid;
-	hdr.version = _LINUX_CAPABILITY_VERSION_3;
 
-	struct __user_cap_data_struct data = { 0 };
-	data.permitted =  (1 << CAP_NET_RAW) | (1 << CAP_SYS_CHROOT) | (1 << CAP_SYS_ADMIN);
-	data.effective = data.permitted;
-	data.inheritable = data.permitted;
-	
-	if(capset(&hdr, &data) < 0){
-		perror("capset");
-	}
-	printf("---------capset--------\n");
-	printf("pid:%d\n",hdr.pid);
-	printf("effective:%lld\n",data.effective);
-	printf("inheritable:%lld\n",data.inheritable);
-	printf("permitted:%lld\n",data.permitted);
-	printf("-----------------------\n");
-	
-	if(capget(&hdr, &data) < 0){
-		perror("capget");
-	}
-	printf("---------capget--------\n");
-	printf("pid:%d\n",hdr.pid);
-	printf("effective:%lld\n",data.effective);
-	printf("inheritable:%lld\n",data.inheritable);
-	printf("permitted:%lld\n",data.permitted);
-	printf("-----------------------\n");
 
 	int status;
 	if( unshare(UNSHARE_FLAGS) < 0){
@@ -87,6 +60,37 @@ int main(){
 
 	//child process
   if (pid == 0) {
+		struct __user_cap_header_struct hdr = { 0 };
+		hdr.pid = (int)getpid();
+		hdr.version = _LINUX_CAPABILITY_VERSION_3;
+
+		struct __user_cap_data_struct data = { 0 };
+		data.permitted =  (1 << CAP_NET_RAW) | (1 << CAP_SYS_CHROOT) | (1 << CAP_SYS_ADMIN);
+		data.effective = data.permitted;
+		data.inheritable = data.permitted;
+		
+		if(capset(&hdr, &data) < 0){
+			perror("capset");
+		}
+		printf("getpid:%d\n",(int)getpid());
+		printf("---------capset--------\n");
+		printf("pid:%d\n",hdr.pid);
+		printf("effective:%lld\n",data.effective);
+		printf("inheritable:%lld\n",data.inheritable);
+		printf("permitted:%lld\n",data.permitted);
+		printf("-----------------------\n");
+		
+		hdr.pid = (int)getpid();
+		if(capget(&hdr, &data) < 0){
+			perror("capget");
+		}
+		printf("---------capget--------\n");
+		printf("pid:%d\n",hdr.pid);
+		printf("effective:%lld\n",data.effective);
+		printf("inheritable:%lld\n",data.inheritable);
+		printf("permitted:%lld\n",data.permitted);
+		printf("-----------------------\n");
+		
 
 		printf("child process:%d\n",(int)getpid());
     sethostname("container",9);
