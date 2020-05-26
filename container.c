@@ -14,7 +14,7 @@ const unsigned int UNSHARE_FLAGS = ( CLONE_FILES | CLONE_NEWIPC | CLONE_NEWNS | 
 int main(){
   pid_t pid;
   int status;
-	if( unshare(UNSHARE_FLAGS) == -1){
+	if( unshare(UNSHARE_FLAGS) < 0){
 		perror("unshare");
 		return 1;
 	}
