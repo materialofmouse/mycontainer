@@ -2,16 +2,13 @@
 #include<sys/types.h>
 #include<sys/wait.h>
 #include<sys/stat.h>
+#include<sys/capability.h>
 #include<unistd.h>
 #include<stdio.h>
 #include<sched.h>
 #include<sys/mount.h>
 #include<fcntl.h>
 #include<errno.h>
-#include</usr/include/linux/capability.h>
-
-const unsigned int UNSHARE_FLAGS = ( CLONE_FILES | CLONE_NEWIPC | CLONE_NEWNS | CLONE_NEWUTS | CLONE_NEWPID); 
-
 
 int main(){
 	pid_t pid = getpid();
@@ -62,13 +59,14 @@ int main(){
 		cap_t caps;
 		const cap_value_t cap_list[3] = {CAP_SYS_ADMIN, CAP_NET_RAW, CAP_SYS_CHROOT};
 
-		if(cap_get_proc() == NULL) {
+		caps = cap_get_proc(getpid());
+		if(caps == NULL) {
 			printf("error:cap_get_proc\n");
 		}
-		if(cap_set_flag (caps, CAP_EFFECTIVE, 3, cap_list, CAP_SET) == -1) {
+		if(cap_set_flag(caps, CAP_EFFECTIVE, 3, cap_list, CAP_SET) == -1) {
 			printf("error:cap_set_flag\n");
 		}
-		if(cap_set_proc (caps) == -1) {
+		if(cap_set_proc(caps) == -1) {
 			printf("error:cap_set_proc\n");
 		}
 
