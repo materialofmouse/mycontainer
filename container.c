@@ -10,6 +10,8 @@
 #include<fcntl.h>
 #include<errno.h>
 
+const unsigned int UNSHARE_FLAGS = ( CLONE_FILES | CLONE_NEWIPC | CLONE_NEWNS | CLONE_NEWUTS | CLONE_NEWPID); 
+
 int main(){
 	pid_t pid = getpid();
 	errno = 0;
@@ -56,13 +58,14 @@ int main(){
 	//child process
   if (pid == 0) {
 		//capability
-		cap_t caps;
+		ssize_t hoge;
+		cap_t caps = cap_init();
+		//caps = 
 		const cap_value_t cap_list[3] = {CAP_SYS_ADMIN, CAP_NET_RAW, CAP_SYS_CHROOT};
 
-		caps = cap_get_proc(getpid());
-		if(caps == NULL) {
-			printf("error:cap_get_proc\n");
-		}
+		caps = cap_get_proc();
+		printf("set cap:%d\n",caps);
+		if(caps == NULL) printf("error:cap_get_proc\n");
 		if(cap_set_flag(caps, CAP_EFFECTIVE, 3, cap_list, CAP_SET) == -1) {
 			printf("error:cap_set_flag\n");
 		}
