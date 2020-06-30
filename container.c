@@ -11,8 +11,6 @@
 #include<fcntl.h>
 #include<errno.h>
 
-const unsigned int UNSHARE_FLAGS = ( CLONE_FILES | CLONE_NEWIPC | CLONE_NEWNS | CLONE_NEWUTS | CLONE_NEWPID); 
-
 int init_cgroup() {
 	//cgroupの有効化
 	if( access("/sys/fs/cgroup/container", F_OK) < 0){
@@ -61,17 +59,35 @@ int restrict_cpu(int percent) {
 
 int child_process() { 
 	cap_t caps = cap_init();
-	const cap_value_t cap_list[3] = {CAP_SYS_ADMIN, CAP_NET_RAW, CAP_SYS_CHROOT};
+	const cap_value_t cap_list[14] = {CAP_SETPCAP,CAP_MKNOD,CAP_AUDIT_WRITE,CAP_CHOWN,CAP_NET_RAW,CAP_DAC_OVERRIDE,CAP_FOWNER,CAP_FSETID,CAP_KILL,CAP_SETGID,CAP_SETUID,CAP_NET_BIND_SERVICE,CAP_SYS_CHROOT,CAP_SETFCAP};
 
 	caps = cap_get_proc();
-	printf("get cap:%lld\n",caps);
+	cap_clear(caps);
+	if(cap_set_proc(caps) == -1) {
+		printf("error:cap_set_proc\n");
+		return -1;
+	}
+	printf("capability:%s\n",cap_to_text(caps, NULL));
+	printf("\n");
 	if(caps == NULL) printf("error:cap_get_proc\n");
-	if(cap_set_flag(caps, CAP_EFFECTIVE, 3, cap_list, CAP_SET) == -1) {
-		printf("error:cap_set_flag\n");
+	if(cap_set_flag(caps, CAP_PERMITTED, 14, cap_list, CAP_SET) == -1){ 
+		printf("error:per\n");
+		return -1;
+	}
+	if(cap_set_flag(caps, CAP_INHERITABLE, 14, cap_list, CAP_SET) == -1) {
+		printf("error:inh\n");
+		return -1;
+	}
+	if(cap_set_flag(caps, CAP_EFFECTIVE, 14, cap_list, CAP_SET) == -1) {
+		printf("error:eff\n");
+		return -1;
+	}
+	if(cap_set_proc(caps) == -1) {
+		printf("error:cap_set_proc2\n");
 		return -1;
 	}
 	caps = cap_get_proc();
-	printf("get cap:%lld\n", caps);
+	printf("capability:%s\n", cap_to_text(caps, NULL));
 	if(cap_set_proc(caps) == -1) {
 		printf("error:cap_set_proc\n");
 		return -1;
@@ -109,6 +125,8 @@ int parrent_process(pid_t * pid) {
 }
 
 int main(){
+	const unsigned int UNSHARE_FLAGS = ( CLONE_FILES | CLONE_NEWIPC | CLONE_NEWNS | CLONE_NEWUTS | CLONE_NEWPID); 
+
 	pid_t pid = getpid();
 	errno = 0;
 
@@ -131,6 +149,6 @@ int main(){
 		exit(1);
 	}
 	if (pid == 0) child_process();
-	else parrent_process(&pid);
+	parrent_process(&pid);
 	exit(0);
 }
