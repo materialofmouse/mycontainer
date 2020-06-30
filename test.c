@@ -1,11 +1,10 @@
 #include <stdio.h>
-
-typedef struct TEST_DATA{
-	int test;
-	int hoge;
-} test_data;
+#include <sys/capability.h>
 
 void main(){
-	test_data mydata = {10,20};
-	printf("%d\n", mydata.test);
+	cap_t t;
+	const cap_value_t a;
+	t = cap_get_proc();
+	if(t == NULL) printf("error\n");
+	printf("%d\n",t);
 }

@@ -1,2 +1,4 @@
 debian/
 *.jpg
+a.out
+container.c
