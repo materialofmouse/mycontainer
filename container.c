@@ -57,41 +57,43 @@ int restrict_cpu(int percent) {
 	return 0;
 }
 
-int child_process() { 
-	cap_t caps = cap_init();
-	const cap_value_t cap_list[14] = {CAP_SETPCAP,CAP_MKNOD,CAP_AUDIT_WRITE,CAP_CHOWN,CAP_NET_RAW,CAP_DAC_OVERRIDE,CAP_FOWNER,CAP_FSETID,CAP_KILL,CAP_SETGID,CAP_SETUID,CAP_NET_BIND_SERVICE,CAP_SYS_CHROOT,CAP_SETFCAP};
+void cap_print(cap_t cap) {
+	printf("\n----  now capability ----\n%s\n-------------------------\n", cap_to_text(cap, NULL));
+}
 
-	caps = cap_get_proc();
-	cap_clear(caps);
+int child_process() { 
+	const cap_value_t cap_list[15] = {CAP_SETPCAP,CAP_MKNOD,CAP_AUDIT_WRITE,CAP_CHOWN,CAP_NET_RAW,CAP_DAC_OVERRIDE,CAP_FOWNER,CAP_FSETID,CAP_KILL,CAP_SETGID,CAP_SETUID,CAP_NET_BIND_SERVICE,CAP_SYS_CHROOT,CAP_SETFCAP,CAP_SYS_ADMIN};
+
+	cap_t caps = cap_get_proc();
+	cap_print(caps);
+	if(caps == NULL) printf("error:cap_get_proc\n");
+
+	cap_clear_flag(caps, CAP_INHERITABLE);
+	cap_clear_flag(caps, CAP_EFFECTIVE);
 	if(cap_set_proc(caps) == -1) {
 		printf("error:cap_set_proc\n");
 		return -1;
 	}
-	printf("capability:%s\n",cap_to_text(caps, NULL));
-	printf("\n");
-	if(caps == NULL) printf("error:cap_get_proc\n");
-	if(cap_set_flag(caps, CAP_PERMITTED, 14, cap_list, CAP_SET) == -1){ 
+	caps = cap_get_proc();
+	cap_print(caps);
+	if(cap_set_flag(caps, CAP_PERMITTED, 15, cap_list, CAP_SET) == -1){ 
 		printf("error:per\n");
 		return -1;
 	}
-	if(cap_set_flag(caps, CAP_INHERITABLE, 14, cap_list, CAP_SET) == -1) {
+	if(cap_set_flag(caps, CAP_INHERITABLE, 15, cap_list, CAP_SET) == -1) {
 		printf("error:inh\n");
 		return -1;
 	}
-	if(cap_set_flag(caps, CAP_EFFECTIVE, 14, cap_list, CAP_SET) == -1) {
+	if(cap_set_flag(caps, CAP_EFFECTIVE, 15, cap_list, CAP_SET) == -1) {
 		printf("error:eff\n");
 		return -1;
 	}
+	cap_print(caps);
 	if(cap_set_proc(caps) == -1) {
-		printf("error:cap_set_proc2\n");
+		perror("cap_set_proc2");
 		return -1;
 	}
 	caps = cap_get_proc();
-	printf("capability:%s\n", cap_to_text(caps, NULL));
-	if(cap_set_proc(caps) == -1) {
-		printf("error:cap_set_proc\n");
-		return -1;
-	}
 
 	printf("child process:%d\n",(int)getpid());
 	sethostname("container",9);
@@ -112,8 +114,9 @@ int child_process() {
 	perror("bash");
 }
 
-int parrent_process(pid_t * pid) {
+int parrent_process(pid_t *pid) {
 	int status;
+	
 	printf("parrent process:%d\n",(int)getpid());
 	if ((*pid = waitpid(*pid,&status,0)) < 0) {
 		perror("wait");
