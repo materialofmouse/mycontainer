@@ -56,6 +56,10 @@ int restrict_cpu(int percent) {
 	close(fd);
 	return 0;
 }
+//OverlayFSの使用にmountを行い、引数で設定する箇所があるためそれを行う関数
+int overlayFS_init() { 
+	return 0;
+}
 
 int child_process() { 
 	cap_t caps = cap_init();
