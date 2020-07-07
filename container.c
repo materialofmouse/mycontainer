@@ -72,6 +72,11 @@ int overlayfs_init() {
 	return 0;
 }
 
+void container_close() {
+	if(umount("condir/root/proc") < 0 ) perror("umount");
+	if(umount("condir/root") < 0 ) perror("umount");
+}
+
 int child_process() { 
 	cap_t caps = cap_init();
 	const cap_value_t cap_list[14] = {CAP_SETPCAP,CAP_MKNOD,CAP_AUDIT_WRITE,CAP_CHOWN,CAP_NET_RAW,CAP_DAC_OVERRIDE,CAP_FOWNER,CAP_FSETID,CAP_KILL,CAP_SETGID,CAP_SETUID,CAP_NET_BIND_SERVICE,CAP_SYS_CHROOT,CAP_SETFCAP};
@@ -141,6 +146,7 @@ int parrent_process(pid_t * pid) {
 	}
 	if (WIFEXITED(status)) {
 		printf("pid:%d status:%d\n",(int)getpid(),WEXITSTATUS(status));
+		container_close();
 	}
 }
 
