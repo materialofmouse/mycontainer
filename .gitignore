@@ -2,3 +2,5 @@ debian/
 *.jpg
 a.out
 container.c
+condir/*
+olfs

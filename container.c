@@ -11,6 +11,13 @@
 #include<fcntl.h>
 #include<errno.h>
 
+typedef struct {
+	//char *Lowerdir;
+	//char *Upperdir:
+	//char *Workdir;
+	//char *merged;
+} overlay_t;
+
 int init_cgroup() {
 	//cgroupの有効化
 	if( access("/sys/fs/cgroup/container", F_OK) < 0){
@@ -57,7 +64,11 @@ int restrict_cpu(int percent) {
 	return 0;
 }
 //OverlayFSの使用にmountを行い、引数で設定する箇所があるためそれを行う関数
-int overlayFS_init() { 
+int overlayfs_init() { 
+	if(mount("overlay", "/home/mouse/container/condir/root", "overlay", 0, "lowerdir=/home/mouse/container/debian,upperdir=/home/mouse/container/condir/root,workdir=/home/mouse/container/condir/work") != 0) {
+		perror("mount");
+		return -1;
+	}
 	return 0;
 }
 
@@ -66,7 +77,7 @@ int child_process() {
 	const cap_value_t cap_list[14] = {CAP_SETPCAP,CAP_MKNOD,CAP_AUDIT_WRITE,CAP_CHOWN,CAP_NET_RAW,CAP_DAC_OVERRIDE,CAP_FOWNER,CAP_FSETID,CAP_KILL,CAP_SETGID,CAP_SETUID,CAP_NET_BIND_SERVICE,CAP_SYS_CHROOT,CAP_SETFCAP};
 
 	caps = cap_get_proc();
-	cap_clear(caps);
+	//cap_clear(caps);
 	if(cap_set_proc(caps) == -1) {
 		printf("error:cap_set_proc\n");
 		return -1;
@@ -97,13 +108,18 @@ int child_process() {
 		return -1;
 	}
 
+	if(overlayfs_init() < 0) {
+		printf("child_process:mount error\n");
+		return -1;
+	}
+
 	printf("child process:%d\n",(int)getpid());
 	sethostname("container",9);
-	if (chdir("/home/mouse/container/debian") < 0) {
+	if (chdir("/home/mouse/container/condir/root") < 0) {
 		perror("chdir");
 		return -1;
 	}
-	if(chroot("/home/mouse/container/debian") < 0) {
+	if(chroot("/home/mouse/container/condir/root") < 0) {
 		perror("chroot");
 		return -1;
 	}
@@ -152,6 +168,11 @@ int main(){
 		printf("set_subsystem()\n");
 		exit(1);
 	}
+	/*if (overlayfs_init() < 0) {
+		printf("overlayfs_init()\n");
+		exit(1);
+	}
+	*/
 	if (pid == 0) child_process();
 	parrent_process(&pid);
 	exit(0);
