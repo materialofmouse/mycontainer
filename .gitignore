@@ -1,6 +1,7 @@
 debian/
+test.c
 *.jpg
 a.out
 container.c
-condir/*
-overlay_test/*
+condir/
+overlay_test/
