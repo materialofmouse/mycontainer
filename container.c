@@ -64,7 +64,7 @@ int restrict_cpu(int percent) {
 	return 0;
 }
 //OverlayFSの使用にmountを行い、引数で設定する箇所があるためそれを行う関数
-int overlayfs_init() { 
+int init_overlay() { 
 	if(mount("overlay", "/home/mouse/container/condir/root", "overlay", 0, "lowerdir=/home/mouse/container/debian,upperdir=/home/mouse/container/condir/root,workdir=/home/mouse/container/condir/work") != 0) {
 		perror("mount");
 		return -1;
@@ -72,7 +72,7 @@ int overlayfs_init() {
 	return 0;
 }
 
-void container_close() {
+void close_container() {
 	if(umount("condir/root/proc") < 0 ) perror("umount");
 	if(umount("condir/root") < 0 ) perror("umount");
 }
@@ -84,36 +84,33 @@ int child_process() {
 	caps = cap_get_proc();
 	//cap_clear(caps);
 	if(cap_set_proc(caps) == -1) {
-		printf("error:cap_set_proc\n");
+		perror("cap_set_proc");
 		return -1;
 	}
-	printf("capability:%s\n",cap_to_text(caps, NULL));
-	printf("\n");
-	if(caps == NULL) printf("error:cap_get_proc\n");
+	// -- debug --
+	//printf("capability:%s\n",cap_to_text(caps, NULL));
+	//printf("\n");
+
 	if(cap_set_flag(caps, CAP_PERMITTED, 14, cap_list, CAP_SET) == -1){ 
-		printf("error:per\n");
+		perror("cap_set_flag");
 		return -1;
 	}
 	if(cap_set_flag(caps, CAP_INHERITABLE, 14, cap_list, CAP_SET) == -1) {
-		printf("error:inh\n");
 		return -1;
 	}
 	if(cap_set_flag(caps, CAP_EFFECTIVE, 14, cap_list, CAP_SET) == -1) {
-		printf("error:eff\n");
+		perror("cap_set_flag");
 		return -1;
 	}
 	if(cap_set_proc(caps) == -1) {
-		printf("error:cap_set_proc2\n");
+		perror("cap_set_proc");
 		return -1;
 	}
-	caps = cap_get_proc();
-	printf("capability:%s\n", cap_to_text(caps, NULL));
-	if(cap_set_proc(caps) == -1) {
-		printf("error:cap_set_proc\n");
-		return -1;
-	}
+	// -- debug --
+	//caps = cap_get_proc();
+	//printf("capability:%s\n", cap_to_text(caps, NULL));
 
-	if(overlayfs_init() < 0) {
+	if(init_overlay() < 0) {
 		printf("child_process:mount error\n");
 		return -1;
 	}
@@ -146,7 +143,7 @@ int parrent_process(pid_t * pid) {
 	}
 	if (WIFEXITED(status)) {
 		printf("pid:%d status:%d\n",(int)getpid(),WEXITSTATUS(status));
-		container_close();
+		close_container();
 	}
 }
 
@@ -174,11 +171,6 @@ int main(){
 		printf("set_subsystem()\n");
 		exit(1);
 	}
-	/*if (overlayfs_init() < 0) {
-		printf("overlayfs_init()\n");
-		exit(1);
-	}
-	*/
 	if (pid == 0) child_process();
 	parrent_process(&pid);
 	exit(0);
