@@ -73,8 +73,8 @@ int init_overlay() {
 }
 
 void close_container() {
-	if(umount("condir/root/proc") < 0 ) perror("umount");
-	if(umount("condir/root") < 0 ) perror("umount");
+	if(umount("/home/mouse/container/condir/root/proc") < 0 ) perror("umount");
+	if(umount("/home/mouse/container/condir/root") < 0 ) perror("umount");
 }
 
 int child_process() { 
