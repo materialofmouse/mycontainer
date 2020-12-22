@@ -2,6 +2,6 @@ debian/
 test.c
 *.jpg
 a.out
-container.c
+container
 condir/
 overlay_test/
