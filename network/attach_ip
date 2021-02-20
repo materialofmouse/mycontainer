@@ -1,4 +1,0 @@
-#!/bin/bash
-
-ip addr add 10.0.0.1/24 dev veth1-br
-ip netns exec container ip addr add 10.0.0.2/24 dev veth1

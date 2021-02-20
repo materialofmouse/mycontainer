@@ -1,4 +1,0 @@
-#!/bin/bash
-
-brctl addbr bridge0
-brctl addif bridge0 veth1-br

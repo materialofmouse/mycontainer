@@ -1,6 +1,0 @@
-#!/bin/bash
-
-ip link set bridge0 up
-ip link set veth1-br up
-ip netns exec container ip link set veth1 up
-

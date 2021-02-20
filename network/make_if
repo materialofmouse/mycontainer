@@ -1,4 +1,0 @@
-#!/bin/bash
-#make interface
-
-ip link add name veth1 type veth peer name veth1-br

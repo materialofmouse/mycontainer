@@ -1,4 +1,0 @@
-#!/bin/bash
-
-ip link set veth1 netns container
-ip link
