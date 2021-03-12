@@ -5,8 +5,8 @@ ip link set veth1-host down
 ip link set bridge0 down
 
 ip netns exec container ip link del veth1-con
+ip netns delete container
 ip link del veth1-host
 brctl delbr bridge0
-ip netns del container
 
 
