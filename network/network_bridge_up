@@ -23,14 +23,13 @@ ip link set veth1-host up
 ip netns exec container ip link set veth1-con up
 ip netns exec container ip link set lo up
 #set NAT
-ip netns exec container ip route add default via 10.10.10.11
+ip netns exec container ip route add default via 10.10.10.10
 
 #add routing
-echo 1 > /proc/sys/net/ipv4/ip_forward
 iptables --table nat --flush
-iptables --table nat --append POSTROUTING --source 10.10.10.0/24 --jump MASQUERADE
+iptables --table nat --append POSTROUTING --source 10.10.10.0/24 -o eth0 --jump MASQUERADE
 
 #eth0 add to bridge and attach ip to eth0
-brctl addif bridge0 eth0
-sleep 20s
-ip addr add 133.242.232.245/24 dev eth0
+#brctl addif bridge0 eth0
+#sleep 20s
+#ip addr add 133.242.232.245/24 dev eth0

@@ -1,4 +1,5 @@
 #!/bin/bash
+set -x
 
 #make interface
 ip link add veth1-host type veth peer name veth1-con
@@ -19,7 +20,7 @@ ip netns exec container ip link set veth1-con up
 ip netns exec container ip link set lo up
 
 #set routing
-#ip netns exec container ip route add default via 10.10.10.10
+ip netns exec container ip route add default via 10.10.10.10
 
 #add NAPT
 iptables --table nat --flush
