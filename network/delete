@@ -1,0 +1,12 @@
+#!/bin/bash
+
+ip netns exec container ip link set veth0-con down
+ip link set veth0-host down
+#ip link set bridge0 down
+
+ip netns exec container ip link del veth0-con
+ip netns delete container
+#ip link del veth0-host
+#brctl delbr bridge0
+
+
