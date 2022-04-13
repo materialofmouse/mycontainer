@@ -22,7 +22,7 @@ int init_cgroup() {
 	//cgroupの有効化
 	if( access("/sys/fs/cgroup/container", F_OK) < 0){
 		if( mkdir("/sys/fs/cgroup/container", 0644) < 0){
-			perror("mkdir");
+			perror("mkdir init cgroup");
 			return -1;
 		}
 	}
@@ -64,8 +64,8 @@ int restrict_cpu(int percent) {
 	return 0;
 }
 //OverlayFSの使用にmountを行い、引数で設定する箇所があるためそれを行う関数
-int init_overlay() { 
-	if(mount("overlay", "/home/mouse/container/condir/root", "overlay", 0, "lowerdir=/home/mouse/container/debian,upperdir=/home/mouse/container/condir/root,workdir=/home/mouse/container/condir/work") != 0) {
+int init_overlay(){ 
+	if(mount("overlay", "/home/mouse/work/mycontainer/condir/root", "overlay", 0, "lowerdir=/home/mouse/work/mycontainer/debian,upperdir=/home/mouse/work/mycontainer/condir/root") != 0) {
 		perror("mount");
 		return -1;
 	}
@@ -73,8 +73,8 @@ int init_overlay() {
 }
 
 void close_container() {
-	if(umount("/home/mouse/container/condir/root/proc") < 0 ) perror("umount");
-	if(umount("/home/mouse/container/condir/root") < 0 ) perror("umount");
+	if(umount("/home/mouse/work/mycontainer/debian/root/proc") < 0 ) perror("umount");
+	if(umount("/home/mouse/work/mycontainer/debian/root") < 0 ) perror("umount");
 }
 
 int child_process() { 
@@ -117,11 +117,11 @@ int child_process() {
 
 	printf("child process:%d\n",(int)getpid());
 	sethostname("container",9);
-	if (chdir("/home/mouse/container/condir/root") < 0) {
+	if (chdir("/home/mouse/work/mycontainer/condir/root") < 0) {
 		perror("chdir");
 		return -1;
 	}
-	if(chroot("/home/mouse/container/condir/root") < 0) {
+	if(chroot("/home/mouse/work/mycontainer/condir/root") < 0) {
 		perror("chroot");
 		return -1;
 	}
