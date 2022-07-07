@@ -1,6 +1,5 @@
 container: container.c
-	@gcc -lcap container.c -o container
-
+	@gcc -L/lib/x86_64-linux-gnu container.c -lcap -o container
 test : test.c
 	gcc test.c -o test
 

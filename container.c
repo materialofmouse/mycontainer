@@ -66,7 +66,7 @@ int restrict_cpu(int percent) {
 //OverlayFSの使用にmountを行い、引数で設定する箇所があるためそれを行う関数
 int init_overlay(){ 
 	if(mount("overlay", "/home/mouse/work/mycontainer/condir/root", "overlay", 0, "lowerdir=/home/mouse/work/mycontainer/debian,upperdir=/home/mouse/work/mycontainer/condir/root") != 0) {
-		perror("mount");
+		perror("mount overlay");
 		return -1;
 	}
 	return 0;
@@ -126,7 +126,7 @@ int child_process() {
 		return -1;
 	}
 	if (mount("proc", "/proc", "proc", 0, NULL) < 0) {
-			perror("mount");
+			perror("mount proc");
 		return -1;
 	}
 
