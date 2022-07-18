@@ -1,9 +1,21 @@
+#include <sys/capability.h>
+#define _GNU_SOURCE
+#include <errno.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/wait.h>
+#include <sys/stat.h>
+#include <stdio.h>
+#include <sys/mount.h>
+
+#include "controller.h"
+
 int init_cgroup() {
 	char* CGROUP_PATH = "/sys/fs/cgroup/container";
 	//cgroupの有効化
 	if( access( CGROUP_PATH, F_OK) < 0){
 		if( mkdir(CGROUP_PATH, 0644) < 0){
-			perror("[ERROR]: cannot mkdir at cgroup path");
+			perror("\x1b[31m[ERROR]\x1b[0m cannot mkdir at cgroup path");
 			return -1;
 		}
 	}
@@ -13,7 +25,7 @@ int init_cgroup() {
 	//プロセスの登録
 	fd = open("/sys/fs/cgroup/container/cgroup.procs", O_WRONLY);
 	if( fd < 0 ){ 
-		perror("[ERROR]: fd cannot open"); 
+		perror("\x1b[31m[ERROR]\x1b[0m fd cannot open"); 
 		return -1; 
 	}
 	int _pid = getpid();
@@ -29,7 +41,7 @@ int set_subsystem(char *subsytem) {
 	int fd;
 	fd = open("/sys/fs/cgroup/cgroup.subtree_control", O_WRONLY);
 	if (fd < 0) { 
-		perror("[ERROR]: subtree error"); 
+		perror("\x1b[31m[ERROR]\x1b[0m subtree error"); 
 		return -1;
 	}
 	write(fd, "+cpu", 5);
@@ -41,23 +53,11 @@ int restrict_cpu(int percent) {
 	int fd;
 	fd = open("/sys/fs/cgroup/container/cpu.max", O_WRONLY);
 	if (fd < 0){ 
-		perror("[ERROR]: cpu open"); 
+		perror("\x1b[31m[ERROR]\x1b[0m cpu open"); 
 		return -1; 
 	}
 	write(fd, "10000", 6);//このサーバーの場合
 	close(fd);
-	return 0;
-}
-
-//OverlayFSの使用にmountを行い、引数で設定する箇所があるためそれを行う関数
-int init_overlay(){ 
-	char* ROOT_PATH = "/home/mouse/work/mycontainer/condir/overlay";
-	errno = 0;
-	if(mount("overlay", "/home/mouse/work/mycontainer/condir/root", "overlay", 0,
-				"lowerdir=/home/mouse/work/mycontainer/debian,upperdir=/home/mouse/work/mycontainer/condir/root,workdir=/home/mouse/work/mycontainer/condir/work") != 0){ 
-		perror("[ERROR]: mount overlay");
-		return -1;
-	}
 	return 0;
 }
 
@@ -84,7 +84,7 @@ int set_capability() {
 	caps = cap_get_proc();
 	//cap_clear(caps);
 	if(cap_set_proc(caps) == -1) {
-		perror("[ERROR]: cap_set_proc");
+		perror("\x1b[31m[ERROR]\x1b[0m cap_set_proc");
 		return -1;
 	}
 	// -- debug --
@@ -92,18 +92,18 @@ int set_capability() {
 	//printf("\n");
 
 	if(cap_set_flag(caps, CAP_PERMITTED, 14, cap_list, CAP_SET) == -1){ 
-		perror("[ERROR]: cap_set_flag");
+		perror("\x1b[31m[ERROR]\x1b[0m cap_set_flag");
 		return -1;
 	}
 	if(cap_set_flag(caps, CAP_INHERITABLE, 14, cap_list, CAP_SET) == -1) {
 		return -1;
 	}
 	if(cap_set_flag(caps, CAP_EFFECTIVE, 14, cap_list, CAP_SET) == -1) {
-		perror("[ERROR]: cap_set_flag");
+		perror("\x1b[31m[ERROR]\x1b[0m cap_set_flag");
 		return -1;
 	}
 	if(cap_set_proc(caps) == -1) {
-		perror("[ERROR]: cap_set_proc");
+		perror("\x1b[31m[ERROR]\x1b[0m cap_set_proc");
 		return -1;
 	}
 	// -- debug --
@@ -112,23 +112,23 @@ int set_capability() {
 	return 0;
 }
 
-
-int parrent_process(pid_t * pid) {
+int controller_start(pid_t * pid) {
 	int status;
-	printf("[DEBUG]: parrent process:%d\n",(int)getpid());
+	printf("\x1b[36m[DEBUG]\x1b[0m controller process:%d\n",(int)getpid());
 	if ((*pid = waitpid(*pid,&status,0)) < 0) {
-		perror("[ERROR]: wait");
+		perror("\x1b[31m[ERROR]\x1b[0m wait");
 		return -1;
 	}
 	if (WIFEXITED(status)) {
-		printf("[DEBUG]: pid:%d status:%d\n",(int)getpid(),WEXITSTATUS(status));
-		close_container();
+		printf("\x1b[36m[DEBUG]\x1b[0m pid:%d status:%d\n",(int)getpid(),WEXITSTATUS(status));
+		umount_container();
 	}
+	return 0;
 }
 
-void close_container() {
-	if(umount("/home/mouse/work/mycontainer/condir/root/proc") < 0 ) perror("[ERROR]: umount");
-	if(umount("/home/mouse/work/mycontainer/condir/root") < 0 ) perror("[ERROR]: umount");
+void umount_container() {
+	if(umount("/home/mouse/work/mycontainer/condir/root/proc") < 0 ) perror("\x1b[31m[ERROR]\x1b[0m umount");
+	if(umount("/home/mouse/work/mycontainer/condir/root") < 0 ) perror("\x1b[31m[ERROR]\x1b[0m umount");
 }
 
 

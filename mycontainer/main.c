@@ -1,20 +1,13 @@
-#include <linux/capability.h>
 #define _GNU_SOURCE
-#include<sys/types.h>
-#include<sys/wait.h>
-#include<sys/stat.h>
-#include<sys/capability.h>
-#include<unistd.h>
-#include<stdio.h>
-#include<stdlib.h>
-#include<sched.h>
-#include<sys/mount.h>
-#include<fcntl.h>
-#include<errno.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <sched.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <errno.h>
 
-
-#include"child.h"
-#include"parent.h"
+#include "container.h"
+#include "controller.h"
 
 void log_print(int _status, char* message) {
 	char* status;
@@ -47,7 +40,7 @@ int main(){
 		perror("[ERROR]: set_subsystem()\n");
 		exit(1);
 	}
-	if (pid == 0) child_process();
-	parrent_process(&pid);
+	if (pid == 0) container_start();
+	controller_start(&pid);
 	exit(0);
 }
