@@ -1,12 +1,21 @@
 #!/bin/bash
+PID=$1
+namespace="${PID}_ns"
+NUM=$2
 
-ip netns exec container ip link set veth0-con down
-ip link set veth0-host down
-#ip link set bridge0 down
+echo $1
+echo -e $namespace
+ip netns exec ${namespace} ip a
 
-ip netns exec container ip link del veth0-con
-ip netns delete container
-#ip link del veth0-host
-#brctl delbr bridge0
+ip netns exec ${namespace} ip link set veth${NUM}-con down
+ip link set veth${NUM}-host down
+ip link set bridge0 down
+
+ip netns exec ${namespace} ip link del veth${NUM}-con
+ip link del veth${NUM}-host
+ip netns delete ${namespace}
+brctl delbr bridge0
+
+umount /run/netns/${namespace}
 
 
