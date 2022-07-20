@@ -16,6 +16,6 @@ ip link del veth${NUM}-host
 ip netns delete ${namespace}
 brctl delbr bridge0
 
-umount /run/netns/${namespace}
+umount /var/run/netns/${namespace}
 
 
