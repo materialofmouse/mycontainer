@@ -17,7 +17,7 @@ void log_print(int _status, char* message) {
 }
 
 int main(){
-	const unsigned int UNSHARE_FLAGS = ( CLONE_FILES | CLONE_NEWIPC | CLONE_NEWNS | CLONE_NEWUTS | CLONE_NEWPID); 
+	const unsigned int UNSHARE_FLAGS = ( CLONE_FILES | CLONE_NEWIPC | CLONE_NEWNS | CLONE_NEWUTS | CLONE_NEWPID | CLONE_NEWNET); 
 
 	pid_t pid = getpid();
 	errno = 0;
