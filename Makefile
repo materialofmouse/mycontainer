@@ -1,8 +1,12 @@
-container: container.c
-	@gcc -lcap container.c -o container
+OBJS = mycontainer/container.o mycontainer/controller.o mycontainer/main.o 
+LIBS = -lcap
+LDFLAGS = -L/lib/x86_64-linux-gnu
+
+build: $(OBJS)
+	@gcc $(LDFLAGS) $(OBJS) $(LIBS) -o container
 
 test : test.c
 	gcc test.c -o test
 
-run :
+run : build
 	sudo ./container

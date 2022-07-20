@@ -1,0 +1,18 @@
+#!/bin/bash
+set -x
+PID=$1
+namespace="${PID}_ns"
+
+ip netns exec ${namespace} ip link set veth1-con down
+ip link set veth0-br down
+ip link set veth1-br down
+ip link set bridge0 down
+
+ip netns exec ${namespace} ip link del veth1-con
+ip link del veth0-br
+brctl delbr bridge0
+ip netns delete ${namespace}
+
+#umount /var/run/netns/${namespace}
+
+
