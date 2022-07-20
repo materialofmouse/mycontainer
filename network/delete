@@ -1,18 +1,17 @@
 #!/bin/bash
+set -x
 PID=$1
 namespace="${PID}_ns"
 NUM=$2
 
-echo $1
-echo -e $namespace
 ip netns exec ${namespace} ip a
 
 ip netns exec ${namespace} ip link set veth${NUM}-con down
-ip link set veth${NUM}-host down
+ip link set veth${NUM}-br down
 ip link set bridge0 down
 
 ip netns exec ${namespace} ip link del veth${NUM}-con
-ip link del veth${NUM}-host
+ip link del veth${NUM}-br
 ip netns delete ${namespace}
 brctl delbr bridge0
 
