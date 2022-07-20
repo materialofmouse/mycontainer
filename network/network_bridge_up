@@ -1,14 +1,15 @@
 #!/bin/bash
+set -x
 PID=$1
 namespace="${PID}_ns"
-
+main_device="enp59s0"
 # setup namespace
 touch /var/run/netns/${PID}_ns
 mount /proc/${PID}/ns/net /var/run/netns/${PID}_ns -o bind 
 
 #make interface
-ip link add name veth1-con type veth peer name veth1-host
-
+ip link add name veth1-con type veth peer name veth1-br
+ip link add name veth0 type veth peer name veth0-br
 #make {namespace}
 #ip netns add ${namespace}
 
@@ -16,24 +17,30 @@ ip link add name veth1-con type veth peer name veth1-host
 ip link set veth1-con netns ${namespace}
 
 #make bridge
-brctl addbr bridge0
-brctl addif bridge0 veth1-host
+ip link add bridge0 type bridge
+
+ip link set dev veth1-br master bridge0
+ip link set dev veth0-br master bridge0
 
 #attach ip
-ip addr add 10.10.10.10/24 dev veth1-host
-ip netns exec ${namespace} ip addr add 10.10.10.11/24 dev veth1-con
+#ip addr add 10.10.10.10/24 dev veth1-br
+ip addr add 10.10.10.10/24 dev veth0
+ip netns exec ${namespace} ip addr add 10.10.10.100/24 dev veth1-con
 
 #exec interface
 ip link set bridge0 up
-ip link set veth1-host up
+ip link set veth1-br up
+ip link set veth0 up
+ip link set veth0-br up
 ip netns exec ${namespace} ip link set veth1-con up
 ip netns exec ${namespace} ip link set lo up
+
 #set NAT
 ip netns exec ${namespace} ip route add default via 10.10.10.10
 
 #add routing
 iptables --table nat --flush
-iptables --table nat --append POSTROUTING --source 10.10.10.0/24 -o eth0 --jump MASQUERADE
+iptables --table nat --append POSTROUTING --source 10.10.10.0/24 -o ${main_device} --jump MASQUERADE
 
 #eth0 add to bridge and attach ip to eth0
 #brctl addif bridge0 eth0
