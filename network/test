@@ -1,4 +1,0 @@
-PID="256988"
-
-touch /var/run/netns/${PID}_ns
-mount /proc/${PID}/ns/net /var/run/netns/${PID}_ns -o bind 
