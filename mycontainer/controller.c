@@ -1,3 +1,4 @@
+#include <linux/capability.h>
 #include <sys/capability.h>
 #define _GNU_SOURCE
 #include <errno.h>
@@ -5,9 +6,11 @@
 #include <unistd.h>
 #include <sys/wait.h>
 #include <sys/stat.h>
-#include <stdio.h>
 #include <sys/mount.h>
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "controller.h"
 
 int init_cgroup() {
@@ -61,60 +64,117 @@ int restrict_cpu(int percent) {
 	return 0;
 }
 
+cap_value_t read_cap_from_file() {
+	FILE* file;
+	file = fopen("/home/mouse/work/mycontainer/config/capabilities.conf", "r");
+	if (file == NULL){
+		perror("\x1b[31m[ERROR]\x1b[0m capabilities.conf is not found");
+		return -1;
+	}
+	
+	char line[256];
+	while(fgets(line, 256, file) != NULL) {
+		char* end;
+		int cap;
+		//capability section header
+		if(line[0] == '[') {
+			printf("c %s", line);
+		}
+		else if (line[0] == '\n') {
+		}
+		else {
+			//str -> int
+			cap = strtol(line, &end, 10);
+			if (errno != 0){
+				printf("\x1b[31m[ERROR]\x1b[0m CAP format is valid\n");
+				return -1;
+			}
+			else if (end == line){
+				printf("\x1b[31m[ERROR]\x1b[0m CAP is string\n");
+				return -1;
+			}
+			else {
+				if(CAP_AUDIT_CONTROL == 31){
+					printf("line: %d\n", CAP_AUDIT_CONTROL);
+				}
+			}
+		}
+	}
+	fclose(file);
+	return 0;
+}
+
+
 int set_capability() {
-	cap_t caps = cap_init();
+	//cap_t caps = cap_init();
 	const cap_value_t cap_list[15] = {
-		CAP_SETPCAP,
-		CAP_MKNOD,
-		CAP_AUDIT_WRITE,
 		CAP_CHOWN,
 		CAP_NET_RAW,
-		CAP_DAC_OVERRIDE,
 		CAP_FOWNER,
 		CAP_FSETID,
 		CAP_KILL,
 		CAP_SETGID,
 		CAP_SETUID,
+		CAP_SETPCAP,
 		CAP_NET_BIND_SERVICE,
+		CAP_NET_RAW,
 		CAP_SYS_CHROOT,
+		CAP_SYS_ADMIN,
+		CAP_MKNOD,
+		CAP_AUDIT_WRITE,
 		CAP_SETFCAP,
-		CAP_SYS_ADMIN
 	};
 
-	caps = cap_get_proc();
-	//cap_clear(caps);
-	if(cap_set_proc(caps) == -1) {
-		perror("\x1b[31m[ERROR]\x1b[0m cap_set_proc");
-		return -1;
-	}
-	// -- debug --
-	//printf("capability:%s\n",cap_to_text(caps, NULL));
+	cap_t caps = cap_get_proc();
+		// -- debug --
+	printf("current capability:%s\n",cap_to_text(caps, NULL));
 	//printf("\n");
 
-	if(cap_set_flag(caps, CAP_PERMITTED, 14, cap_list, CAP_SET) == -1){ 
-		perror("\x1b[31m[ERROR]\x1b[0m cap_set_flag");
+	if(cap_clear_flag(caps, CAP_INHERITABLE)){
+		perror("\x1b[31m[ERROR]\x1b[0m cap_clear_flag");
+	}
+
+	if(cap_clear_flag(caps, CAP_PERMITTED)){
+		perror("\x1b[31m[ERROR]\x1b[0m cap_clear_flag");	
+	}
+	if(cap_clear_flag(caps, CAP_EFFECTIVE)){
+		perror("\x1b[31m[ERROR]\x1b[0m cap_clear_flag");
+	}
+//cap_set_flag(caps, CAP_PERMITTED, 1, flag, CAP_CLEAR);
+	if(cap_set_flag(caps, CAP_PERMITTED, 15, cap_list, CAP_SET) == -1){ 
+		perror("\x1b[31m[ERROR]\x1b[0m cap_set_flag prm");
 		return -1;
 	}
-	if(cap_set_flag(caps, CAP_INHERITABLE, 14, cap_list, CAP_SET) == -1) {
+	if(cap_set_flag(caps, CAP_INHERITABLE, 15, cap_list, CAP_SET) == -1) {
+		perror("\x1b[31m[ERROR]\x1b[0m cap_set_flag inh");
 		return -1;
 	}
-	if(cap_set_flag(caps, CAP_EFFECTIVE, 14, cap_list, CAP_SET) == -1) {
-		perror("\x1b[31m[ERROR]\x1b[0m cap_set_flag");
-		return -1;
+	if(cap_set_flag(caps, CAP_EFFECTIVE, 15, cap_list, CAP_SET) == -1) {
+		perror("\x1b[31m[ERROR]\x1b[0m cap_set_flag eff");
+	}
+	CAP_AMBIENT_SUPPORTED();
+	int i;
+	for(i = 0; i < 15; i++){
+		cap_set_ambient(cap_list[i], CAP_SET);
 	}
 	if(cap_set_proc(caps) == -1) {
 		perror("\x1b[31m[ERROR]\x1b[0m cap_set_proc");
 		return -1;
 	}
 	// -- debug --
-	//caps = cap_get_proc();
-	//printf("capability:%s\n", cap_to_text(caps, NULL));
+	caps = cap_get_proc();
+	printf("[\x1b[36m[DEBUG]\x1b[0m capability:%s\n", cap_to_text(caps, NULL));
 	return 0;
 }
 
 int controller_start(pid_t * pid) {
 	int status;
-	printf("\x1b[36m[DEBUG]\x1b[0m controller process:%d\n",(int)getpid());
+	int _pid = getpid();
+	char mypid[6];
+	sprintf(mypid, "%d", _pid);
+	printf("\x1b[36m[DEBUG]\x1b[0m controller process:%d\n",_pid);
+
+//set_capability();
 	if ((*pid = waitpid(*pid,&status,0)) < 0) {
 		perror("\x1b[31m[ERROR]\x1b[0m wait");
 		return -1;
