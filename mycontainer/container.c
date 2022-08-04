@@ -10,6 +10,9 @@
 
 #include "container.h"
 
+#define MAX_PATH_LENGTH 512
+static char current_path[MAX_PATH_LENGTH];
+
 int init_proc() {
 	char* PROC_PATH = "/proc";
 	if( access( PROC_PATH, F_OK) < 0){
@@ -26,29 +29,44 @@ int init_proc() {
 }
 
 int init_overlay(){ 
-	char* ROOT_PATH = "/home/mouse/work/mycontainer/condir/overlay";
-	errno = 0;
-	if(mount("overlay", "/home/mouse/work/mycontainer/condir/root", "overlay", 0,
-				"lowerdir=/home/mouse/work/mycontainer/debian,upperdir=/home/mouse/work/mycontainer/condir/root,workdir=/home/mouse/work/mycontainer/condir/work") != 0){ 
+	char root_dir[MAX_PATH_LENGTH];
+	char lower_dir[MAX_PATH_LENGTH];
+	char upper_dir[MAX_PATH_LENGTH];
+	char work_dir[MAX_PATH_LENGTH];
+
+	sprintf(root_dir,  "%s%s", current_path, "/condir/root");
+	sprintf(lower_dir, "%s%s", current_path, "/debian");
+	sprintf(upper_dir, "%s%s", current_path, "/condir/root");
+	sprintf(work_dir,  "%s%s", current_path, "/condir/work");
+	
+	char mount_option[MAX_PATH_LENGTH*2];
+	sprintf(mount_option, "lowerdir=%s,upperdir=%s,workdir=%s", lower_dir, upper_dir, work_dir);
+	if(mount("overlay", root_dir, "overlay", 0, mount_option) != 0){ 
 		perror("\x1b[31m[ERROR] mount overlay");
 		return -1;
 	}
 	return 0;
 }
 
-int container_start() { 
-		if(init_overlay() < 0) {
+int container_start() {
+	getcwd(current_path, MAX_PATH_LENGTH);
+	printf("pwd: %s\n", current_path);
+	
+	if(init_overlay() < 0) {
 		perror("\x1b[31m[ERROR] init overlay");
 		return -1;
 	}
 
 	printf("\x1b[36m[DEBUG]\x1b[0m child process:%d\n",(int)getpid());
 	sethostname("container",9);
-	if (chdir("/home/mouse/work/mycontainer/condir/root") < 0) {
+	
+	char root_dir[MAX_PATH_LENGTH*2];
+	sprintf(root_dir, "%s/condir/root", current_path);
+	if (chdir(root_dir) < 0) {
 		perror("\x1b[31m[ERROR] chdir");
 		return -1;
 	}
-	if (chroot("/home/mouse/work/mycontainer/condir/root") < 0) {
+	if (chroot(root_dir) < 0) {
 		perror("\x1b[31m[ERROR] chroot");
 		return -1;
 	}

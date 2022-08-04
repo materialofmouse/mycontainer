@@ -187,8 +187,15 @@ int controller_start(pid_t * pid) {
 }
 
 void umount_container() {
-	if(umount("/home/mouse/work/mycontainer/condir/root/proc") < 0 ) perror("\x1b[31m[ERROR]\x1b[0m umount");
-	if(umount("/home/mouse/work/mycontainer/condir/root") < 0 ) perror("\x1b[31m[ERROR]\x1b[0m umount");
+	char pwd[512];
+	getcwd(pwd, 512);
+	char proc_path[512];
+	char root_path[512];
+
+	sprintf(proc_path, "%s%s", pwd, "/condir/root/proc");
+	sprintf(root_path, "%s%s", pwd, "/condir/root");
+	if(umount(proc_path) < 0 ) perror("\x1b[31m[ERROR]\x1b[0m umount");
+	if(umount(root_path) < 0 ) perror("\x1b[31m[ERROR]\x1b[0m umount");
 }
 
 
