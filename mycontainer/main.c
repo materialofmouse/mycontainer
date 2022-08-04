@@ -27,8 +27,13 @@ int main(){
 		perror("[ERROR]: unshare");
 		exit(1);
 	}
+	if (set_capability() < 0) {
+		perror("\x1b[31m[ERROR]\x1b[0m set cap");
+	}
+
 	//fork
-  if( (pid = fork()) < 0) {
+	//read_cap_from_file();
+	if( (pid = fork()) < 0) {
     perror("[ERROR]: fork");
     exit(1);
   }
