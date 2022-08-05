@@ -29,10 +29,10 @@ int init_proc() {
 }
 
 int init_overlay(){ 
-	char root_dir[MAX_PATH_LENGTH];
-	char lower_dir[MAX_PATH_LENGTH];
-	char upper_dir[MAX_PATH_LENGTH];
-	char work_dir[MAX_PATH_LENGTH];
+	char root_dir[MAX_PATH_LENGTH*2];
+	char lower_dir[MAX_PATH_LENGTH*2];
+	char upper_dir[MAX_PATH_LENGTH*2];
+	char work_dir[MAX_PATH_LENGTH*2];
 
 	sprintf(root_dir,  "%s%s", current_path, "/condir/root");
 	sprintf(lower_dir, "%s%s", current_path, "/debian");
