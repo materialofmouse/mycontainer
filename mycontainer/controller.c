@@ -184,7 +184,20 @@ int controller_start(pid_t * pid) {
 		printf("\x1b[36m[DEBUG]\x1b[0m pid:%d status:%d\n",(int)getpid(),WEXITSTATUS(status));
 		umount_container();
 	}
+	write_pid(0,0);
 	return 0;
+}
+
+void write_pid(pid_t ctl_pid, pid_t con_pid){
+	FILE *ctl_pid_f;
+	FILE *con_pid_f;
+	
+	ctl_pid_f = fopen("config/controller_pid", "w+");
+	con_pid_f = fopen("config/container_pid", "w+");
+	fprintf(ctl_pid_f, "%d\n", ctl_pid);
+	fprintf(con_pid_f, "%d\n", con_pid);
+	fclose(con_pid_f);
+	fclose(ctl_pid_f);
 }
 
 void umount_container() {

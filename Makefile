@@ -15,10 +15,10 @@ setup:
 	fi
 
 build: $(OBJS:.o=.c)
-	@gcc $(LDFLAGS) $(OBJS:.o=.c) $(LIBS) -o container
+	@gcc -w $(LDFLAGS) $(OBJS:.o=.c) $(LIBS) -o container
 
 test : test.c
 	gcc test.c -o test
 
 run : build
-	sudo ./container 
+	@sudo ./container 

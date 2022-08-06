@@ -47,16 +47,7 @@ int main(){
 		container_start();
 	}
 	else{
-		FILE *ctl_pid;
-		FILE *con_pid;
-		
-		ctl_pid = fopen("config/controller_pid", "w+");
-		con_pid = fopen("config/container_pid", "w+");
-		fprintf(ctl_pid, "%d\n", getpid());
-		fprintf(con_pid, "%d\n", pid);
-		fclose(con_pid);
-		fclose(ctl_pid);
-		
+		write_pid(getpid(), pid);
 		controller_start(&pid);
 	}
 	exit(0);
