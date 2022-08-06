@@ -25,7 +25,7 @@ build: $(OBJS:.o=.c)
 	@gcc -w $(LDFLAGS) $(OBJS:.o=.c) $(LIBS) -o container
 
 run: build
-	@sudo cp ./config/start.sh ./layer/diff/root/start.sh
+	@sudo cp ./config/start.sh ./layer/diff/start.sh
 	@sudo ./container 
 
 observer:
