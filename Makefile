@@ -1,24 +1,24 @@
-OBJS = mycontainer/container.o mycontainer/controller.o mycontainer/main.o 
+OBJS = source/container.o source/controller.o source/main.o 
 LIBS = -lcap
 LDFLAGS = -L/lib/x86_64-linux-gnu
-CON_DIR = ./condir
 
 setup:
 	sudo apt update
 	sudo apt install debootstrap libcap2-dev make gcc bridge-utils
 	
 	@if [ ! -e debian ]; then \
-		sudo debootstrap --arch amd64 jessie ./debian http://ftp.jp.debian.org/debian; \
+		@sudo debootstrap --arch amd64 jessie ./debian http://ftp.jp.debian.org/debian; \
 	fi
-	@if [ ! -d $(CON_DIR) ]; then \
-		mkdir $(CON_DIR); mkdir ./condir/root ./condir/work; \
+	@if [ ! -d layer ]; then \
+		@mkdir -p ./layer/root ./layer/work; ./layer/diff; \
 	fi
 
 build: $(OBJS:.o=.c)
 	@gcc -w $(LDFLAGS) $(OBJS:.o=.c) $(LIBS) -o container
 
-test : test.c
-	gcc test.c -o test
-
-run : build
+run: build
+	@sudo cp ./config/start.sh ./layer/diff/root/start.sh
 	@sudo ./container 
+
+observer:
+	@sudo python3 tools/container_observer.py &

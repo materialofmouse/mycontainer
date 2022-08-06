@@ -1,8 +1,0 @@
-debian/
-test.c
-*.jpg
-a.out
-container
-mycontainer/*.o
-condir/
-overlay_test/

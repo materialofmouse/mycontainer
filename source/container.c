@@ -35,10 +35,10 @@ int init_overlay(){
 	char work_dir[MAX_PATH_LENGTH*2];
 	char mount_option[MAX_PATH_LENGTH*6+1];
 	
-	sprintf(root_dir,  "%s/condir/root", current_path);
+	sprintf(root_dir,  "%s/layer/root", current_path);
 	sprintf(lower_dir, "%s/debian", current_path);
-	sprintf(upper_dir, "%s/condir/diff", current_path);
-	sprintf(work_dir,  "%s/condir/work", current_path);
+	sprintf(upper_dir, "%s/layer/diff", current_path);
+	sprintf(work_dir,  "%s/layer/work", current_path);
 	sprintf(mount_option, "lowerdir=%s,upperdir=%s,workdir=%s", lower_dir, upper_dir, work_dir);
 	
 	if(mount("overlay", root_dir, "overlay", 0, mount_option) != 0){ 
@@ -60,7 +60,7 @@ int container_start() {
 	sethostname("container",9);
 	
 	char root_dir[MAX_PATH_LENGTH*2];
-	sprintf(root_dir, "%s/condir/root", current_path);
+	sprintf(root_dir, "%s/layer/root", current_path);
 	if (chdir(root_dir) < 0) {
 		perror("\x1b[31m[ERROR] chdir");
 		return -1;
@@ -74,7 +74,7 @@ int container_start() {
 		return -1;
 	}
 	
-	if (execl("/bin/bash","",NULL) < 0){
+	if (execl("root/start.sh", "", NULL) < 0){
 		perror("\x1b[31m[ERROR] bash");
 		return -1;
 	}

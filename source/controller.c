@@ -66,7 +66,7 @@ int restrict_cpu(int percent) {
 
 cap_value_t read_cap_from_file() {
 	FILE* file;
-	file = fopen("/home/mouse/work/mycontainer/config/capabilities.conf", "r");
+	file = fopen("/home/mouse/work/mycontainer/status/capabilities.conf", "r");
 	if (file == NULL){
 		perror("\x1b[31m[ERROR]\x1b[0m capabilities.conf is not found");
 		return -1;
@@ -192,8 +192,8 @@ void write_pid(pid_t ctl_pid, pid_t con_pid){
 	FILE *ctl_pid_f;
 	FILE *con_pid_f;
 	
-	ctl_pid_f = fopen("config/controller_pid", "w+");
-	con_pid_f = fopen("config/container_pid", "w+");
+	ctl_pid_f = fopen("./status/controller_pid", "w+");
+	con_pid_f = fopen("./status/container_pid", "w+");
 	fprintf(ctl_pid_f, "%d\n", ctl_pid);
 	fprintf(con_pid_f, "%d\n", con_pid);
 	fclose(con_pid_f);
@@ -206,8 +206,8 @@ void umount_container() {
 	char proc_path[512];
 	char root_path[512];
 
-	sprintf(proc_path, "%s/condir/root/proc", pwd);
-	sprintf(root_path, "%s/condir/root", pwd);
+	sprintf(proc_path, "%s/layer/root/proc", pwd);
+	sprintf(root_path, "%s/layer/root", pwd);
 	if(umount(proc_path) < 0 ) perror("\x1b[31m[ERROR]\x1b[0m umount");
 	if(umount(root_path) < 0 ) perror("\x1b[31m[ERROR]\x1b[0m umount");
 }

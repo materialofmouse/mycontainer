@@ -14,7 +14,7 @@ if [ "$ip_forward" == "0" ]; then
 fi
 
 i=0
-main_device=$(cat network/main_device)
+main_device=$(cat config/main_device)
 if [ "$main_device" == "" ]; then
 	echo "network device not found"
 	echo "please choice your main device"
@@ -25,7 +25,7 @@ if [ "$main_device" == "" ]; then
 	done
 	read -p "select device number:" number
 	main_device=${device_list[number]}
-	echo $main_device > network/main_device
+	echo $main_device > config/main_device
 fi
 
 # setup namespace
