@@ -1,4 +1,5 @@
 debian/
+tools/__pycache__/
 container
 source/*.o
 layer/

@@ -74,7 +74,7 @@ int container_start() {
 		return -1;
 	}
 	
-	if (execl("root/start.sh", "", NULL) < 0){
+	if (execl("./start.sh", "", NULL) < 0){
 		perror("\x1b[31m[ERROR] bash");
 		return -1;
 	}

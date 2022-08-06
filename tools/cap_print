@@ -3,89 +3,49 @@ import sys
 import copy
 import json
 
-CAPS = {
-
-        "CAP_CHOWN":               0,
-        "CAP_DAC_OVERRIDE":        1,
-        "CAP_DAC_READ_SEARCH":     2,
-        "CAP_FOWNER":              3,
-        "CAP_FSETID":              4,
-        "CAP_KILL":                5,
-        "CAP_SETGID":              6,
-        "CAP_SETUID":              7,
-        "CAP_SETPCAP":             8,
-        "CAP_LINUX_IMMUTABLE":     9,
-        "CAP_NET_BIND_SERVICE":   10,
-        "CAP_NET_BROADCAST":      11,
-        "CAP_NET_ADMIN":          12,
-        "CAP_NET_RAW":            13,
-        "CAP_IPC_LOCK":           14,
-        "CAP_IPC_OWNER":          15,
-        "CAP_SYS_MODULE":         16,
-        "CAP_SYS_RAWIO":          17,
-        "CAP_SYS_CHROOT":         18,
-        "CAP_SYS_PTRACE":         19,
-        "CAP_SYS_PACCT":          20,
-        "CAP_SYS_ADMIN":          21,
-        "CAP_SYS_BOOT":           22,
-        "CAP_SYS_NICE":           23,
-        "CAP_SYS_RESOURCE":       24,
-        "CAP_SYS_TIME":           25,
-        "CAP_SYS_TTY_CONFIG":     26,
-        "CAP_MKNOD":              27,
-        "CAP_LEASE":              28,
-        "CAP_AUDIT_WRITE":        29,
-        "CAP_AUDIT_CONTROL":      30,
-        "CAP_SETFCAP":            31,
-        "CAP_MAC_OVERRIDE":       32,
-        "CAP_MAC_ADMIN":          33,
-        "CAP_SYSLOG":             34,
-        "CAP_WAKE_ALARM":         35,
-        "CAP_BLOCK_SUSPEND":      36,
-        "CAP_AUDIT_READ":         37,
-        "CAP_PERFMON":            38,
-        "CAP_BPF":                39,
-        "CAP_CHECKPOINT_RESTORE": 40}
+import capability
 
 
-def flag_to_caps_text(flag: str) -> list:
-    cap_list = []
-    for key in CAPS.keys():
-        if flag[len(flag) - (CAPS[key]+1)] == "1":
-            cap_list.append(key)
+class cap_print:
+    def __init__(self):
+        self.capability = capability.capability()
+ 
+    def flag_to_caps_text(self, flag: str) -> list:
+        cap_list = []
+        for key in self.capability.CAPS.keys():
+            if flag[len(flag) - (self.capability.CAPS[key]+1)] == "1":
+                cap_list.append(key)
 
-    return cap_list
+        return cap_list
 
+    def hex_to_bin_text(self, text: str) -> str:
+        num = int(text, 16)
+        format_str = "0" + str(len(text)*4) + "b"
+        flag = format(num, format_str)
 
-def hex_to_bin_text(text: str) -> str:
-    num = int(text, 16)
-    format_str = "0" + str(len(text)*4) + "b"
-    flag = format(num, format_str)
+        return flag
 
-    return flag
-
-
-def file_read(file_path: str, arg_e: list) -> list:
-    file = open(file_path, "r")
-    caps = {}
-    caps_list = []
-    for tmp in file.readlines():
-        cap_str_flag = False
-        for arg in arg_e:
-            if arg in tmp:
-                cap_str_flag = True
-        if cap_str_flag:
-            cap_info = tmp.split(":")
-            cap_title = cap_info[0]
-            cap_flag = cap_info[1].replace(" ", "")
-            cap_flag = cap_flag.replace("\n", "")
-            caps = copy.deepcopy(caps)
-            caps['title'] = cap_title
-            caps['value'] = cap_flag
-            caps_list.append(caps)
-        else:
-            continue
-    return caps_list
+    def file_read(self, file_path: str, arg_e: list) -> list:
+        file = open(file_path, "r")
+        caps = {}
+        caps_list = []
+        for tmp in file.readlines():
+            cap_str_flag = False
+            for arg in arg_e:
+                if arg in tmp:
+                    cap_str_flag = True
+            if cap_str_flag:
+                cap_info = tmp.split(":")
+                cap_title = cap_info[0]
+                cap_flag = cap_info[1].replace(" ", "")
+                cap_flag = cap_flag.replace("\n", "")
+                caps = copy.deepcopy(caps)
+                caps['title'] = cap_title
+                caps['value'] = cap_flag
+                caps_list.append(caps)
+            else:
+                continue
+        return caps_list
 
 
 class option:
@@ -117,13 +77,14 @@ if __name__ == "__main__":
     opt = option()
     caps = []
     command = opt.check(sys.argv)
+    capp = cap_print()
     if command['option'] == '-h':
         caps.append({'value': command['source']})
     elif command['option'] == '-f':
-        caps = file_read(command['source'], command['args_e'])
+        caps = capp.file_read(command['source'], command['args_e'])
 
     for cap in caps:
-        cap['value'] = hex_to_bin_text(cap['value'])
-        cap['value'] = flag_to_caps_text(cap['value'])
+        cap['value'] = capp.hex_to_bin_text(cap['value'])
+        cap['value'] = capp.flag_to_caps_text(cap['value'])
 
     print(json.dumps(caps))
