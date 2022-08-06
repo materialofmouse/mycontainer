@@ -66,7 +66,7 @@ int restrict_cpu(int percent) {
 
 cap_value_t read_cap_from_file() {
 	FILE* file;
-	file = fopen("/home/mouse/work/mycontainer/status/capabilities.conf", "r");
+	file = fopen("./config/capabilities.conf", "r");
 	if (file == NULL){
 		perror("\x1b[31m[ERROR]\x1b[0m capabilities.conf is not found");
 		return -1;
@@ -85,7 +85,7 @@ cap_value_t read_cap_from_file() {
 		else {
 			//str -> int
 			cap = strtol(line, &end, 10);
-			if (errno != 0){
+			if (errno == ERANGE){
 				printf("\x1b[31m[ERROR]\x1b[0m CAP format is valid\n");
 				return -1;
 			}
