@@ -1,15 +1,20 @@
 #!/bin/bash
 #set -x
 PID=$1
-namespace="${PID}_ns"
-main_device=$(cat network/main_device)
-ip_foward=$(sysctl -n net.ipv4.ip_forward)
+if [ "$PID" == "0" ]; then
+	echo container not found
+	exit 1
+fi
 
+namespace="${PID}_ns"
+ip_foward=$(sysctl -n net.ipv4.ip_forward)
 if [ "$ip_forward" == "0" ]; then
 	echo "sysctl -w net.ipv4.ip_forward=1"
 	sysctl -w net.ipv4.ip_forward=1
 fi
+
 i=0
+main_device=$(cat config/main_device)
 if [ "$main_device" == "" ]; then
 	echo "network device not found"
 	echo "please choice your main device"
@@ -20,7 +25,7 @@ if [ "$main_device" == "" ]; then
 	done
 	read -p "select device number:" number
 	main_device=${device_list[number]}
-	echo $main_device > network/main_device
+	echo $main_device > config/main_device
 fi
 
 # setup namespace
@@ -66,3 +71,4 @@ iptables --table nat --append POSTROUTING --source 10.10.10.0/24 -o ${main_devic
 #brctl addif bridge0 eth0
 #sleep 20s
 #ip addr add 133.242.232.245/24 dev eth0
+exit 0

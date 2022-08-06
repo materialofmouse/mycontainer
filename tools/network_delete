@@ -1,6 +1,11 @@
 #!/bin/bash
-set -x
+#set -x
 PID=$1
+if [ "$PID" == "0" ]; then
+	echo container not found
+	exit 0
+fi
+
 namespace="${PID}_ns"
 
 ip netns exec ${namespace} ip link set veth1-con down

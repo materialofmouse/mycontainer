@@ -66,7 +66,7 @@ int restrict_cpu(int percent) {
 
 cap_value_t read_cap_from_file() {
 	FILE* file;
-	file = fopen("/home/mouse/work/mycontainer/config/capabilities.conf", "r");
+	file = fopen("/home/mouse/work/mycontainer/status/capabilities.conf", "r");
 	if (file == NULL){
 		perror("\x1b[31m[ERROR]\x1b[0m capabilities.conf is not found");
 		return -1;
@@ -104,10 +104,10 @@ cap_value_t read_cap_from_file() {
 	return 0;
 }
 
-
+#define CAP_COUNT 16
 int set_capability() {
 	//cap_t caps = cap_init();
-	const cap_value_t cap_list[15] = {
+	const cap_value_t cap_list[CAP_COUNT] = {
 		CAP_CHOWN,
 		CAP_NET_RAW,
 		CAP_FOWNER,
@@ -116,13 +116,14 @@ int set_capability() {
 		CAP_SETGID,
 		CAP_SETUID,
 		CAP_SETPCAP,
-		CAP_NET_BIND_SERVICE,
 		CAP_NET_RAW,
 		CAP_SYS_CHROOT,
 		CAP_SYS_ADMIN,
 		CAP_MKNOD,
 		CAP_AUDIT_WRITE,
 		CAP_SETFCAP,
+		CAP_DAC_OVERRIDE,
+		CAP_DAC_READ_SEARCH,
 	};
 
 	cap_t caps = cap_get_proc();
@@ -141,20 +142,20 @@ int set_capability() {
 		perror("\x1b[31m[ERROR]\x1b[0m cap_clear_flag");
 	}
 //cap_set_flag(caps, CAP_PERMITTED, 1, flag, CAP_CLEAR);
-	if(cap_set_flag(caps, CAP_PERMITTED, 15, cap_list, CAP_SET) == -1){ 
+	if(cap_set_flag(caps, CAP_PERMITTED, CAP_COUNT, cap_list, CAP_SET) == -1){ 
 		perror("\x1b[31m[ERROR]\x1b[0m cap_set_flag prm");
 		return -1;
 	}
-	if(cap_set_flag(caps, CAP_INHERITABLE, 15, cap_list, CAP_SET) == -1) {
+	if(cap_set_flag(caps, CAP_INHERITABLE, CAP_COUNT, cap_list, CAP_SET) == -1) {
 		perror("\x1b[31m[ERROR]\x1b[0m cap_set_flag inh");
 		return -1;
 	}
-	if(cap_set_flag(caps, CAP_EFFECTIVE, 15, cap_list, CAP_SET) == -1) {
+	if(cap_set_flag(caps, CAP_EFFECTIVE, CAP_COUNT, cap_list, CAP_SET) == -1) {
 		perror("\x1b[31m[ERROR]\x1b[0m cap_set_flag eff");
 	}
 	CAP_AMBIENT_SUPPORTED();
 	int i;
-	for(i = 0; i < 15; i++){
+	for(i = 0; i < CAP_COUNT; i++){
 		cap_set_ambient(cap_list[i], CAP_SET);
 	}
 	if(cap_set_proc(caps) == -1) {
@@ -163,7 +164,7 @@ int set_capability() {
 	}
 	// -- debug --
 	caps = cap_get_proc();
-	printf("[\x1b[36m[DEBUG]\x1b[0m capability:%s\n", cap_to_text(caps, NULL));
+	printf("\x1b[36m[DEBUG]\x1b[0m capability:%s\n", cap_to_text(caps, NULL));
 	return 0;
 }
 
@@ -183,17 +184,30 @@ int controller_start(pid_t * pid) {
 		printf("\x1b[36m[DEBUG]\x1b[0m pid:%d status:%d\n",(int)getpid(),WEXITSTATUS(status));
 		umount_container();
 	}
+	write_pid(0,0);
 	return 0;
 }
 
+void write_pid(pid_t ctl_pid, pid_t con_pid){
+	FILE *ctl_pid_f;
+	FILE *con_pid_f;
+	
+	ctl_pid_f = fopen("./status/controller_pid", "w+");
+	con_pid_f = fopen("./status/container_pid", "w+");
+	fprintf(ctl_pid_f, "%d\n", ctl_pid);
+	fprintf(con_pid_f, "%d\n", con_pid);
+	fclose(con_pid_f);
+	fclose(ctl_pid_f);
+}
+
 void umount_container() {
-	char pwd[512];
-	getcwd(pwd, 512);
+	char pwd[256];
+	getcwd(pwd, 256);
 	char proc_path[512];
 	char root_path[512];
 
-	sprintf(proc_path, "%s%s", pwd, "/condir/root/proc");
-	sprintf(root_path, "%s%s", pwd, "/condir/root");
+	sprintf(proc_path, "%s/layer/root/proc", pwd);
+	sprintf(root_path, "%s/layer/root", pwd);
 	if(umount(proc_path) < 0 ) perror("\x1b[31m[ERROR]\x1b[0m umount");
 	if(umount(root_path) < 0 ) perror("\x1b[31m[ERROR]\x1b[0m umount");
 }
