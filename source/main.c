@@ -8,6 +8,7 @@
 
 #include "container.h"
 #include "controller.h"
+#include "cap_controller.h"
 
 #define ERROR -1
 #define DEBUG 0
@@ -32,11 +33,7 @@ int main(){
 		perror("[ERROR]: unshare");
 		exit(1);
 	}
-	if (set_capability() < 0) {
-		perror("\x1b[31m[ERROR]\x1b[0m set cap");
-	}
-	//fork
-	//read_cap_from_file();
+		//fork
 	if( (pid = fork()) < 0) {
     perror("[ERROR]: fork");
     exit(1);
@@ -50,6 +47,10 @@ int main(){
 		exit(1);
 	}
 	if (pid == 0) {
+		read_cap_from_file();
+		if (set_capability() < 0) {
+			perror("\x1b[31m[ERROR]\x1b[0m set cap");
+		}
 		container_start();
 	}
 	else{
