@@ -8,6 +8,7 @@
 
 #include "container.h"
 #include "controller.h"
+#include "cap_controller.h"
 
 #define ERROR -1
 #define DEBUG 0
@@ -36,7 +37,7 @@ int main(){
 		perror("\x1b[31m[ERROR]\x1b[0m set cap");
 	}
 	//fork
-	//read_cap_from_file();
+	read_cap_from_file();
 	if( (pid = fork()) < 0) {
     perror("[ERROR]: fork");
     exit(1);
