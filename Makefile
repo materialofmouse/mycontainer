@@ -21,4 +21,4 @@ test : test.c
 	gcc test.c -o test
 
 run : build
-	sudo ./container
+	sudo ./container 

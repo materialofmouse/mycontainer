@@ -164,7 +164,7 @@ int set_capability() {
 	}
 	// -- debug --
 	caps = cap_get_proc();
-	printf("[\x1b[36m[DEBUG]\x1b[0m capability:%s\n", cap_to_text(caps, NULL));
+	printf("\x1b[36m[DEBUG]\x1b[0m capability:%s\n", cap_to_text(caps, NULL));
 	return 0;
 }
 
@@ -188,13 +188,13 @@ int controller_start(pid_t * pid) {
 }
 
 void umount_container() {
-	char pwd[512];
-	getcwd(pwd, 512);
+	char pwd[256];
+	getcwd(pwd, 256);
 	char proc_path[512];
 	char root_path[512];
 
-	sprintf(proc_path, "%s%s", pwd, "/condir/root/proc");
-	sprintf(root_path, "%s%s", pwd, "/condir/root");
+	sprintf(proc_path, "%s/condir/root/proc", pwd);
+	sprintf(root_path, "%s/condir/root", pwd);
 	if(umount(proc_path) < 0 ) perror("\x1b[31m[ERROR]\x1b[0m umount");
 	if(umount(root_path) < 0 ) perror("\x1b[31m[ERROR]\x1b[0m umount");
 }

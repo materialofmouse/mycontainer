@@ -21,8 +21,7 @@ int main(){
 
 	pid_t pid = getpid();
 	errno = 0;
-
-	//unshareでnamespaceと諸々を分ける
+		//unshareでnamespaceと諸々を分ける
 	if( unshare(UNSHARE_FLAGS) < 0){
 		perror("[ERROR]: unshare");
 		exit(1);
@@ -44,7 +43,21 @@ int main(){
 		perror("[ERROR]: set_subsystem()\n");
 		exit(1);
 	}
-	if (pid == 0) container_start();
-	controller_start(&pid);
+	if (pid == 0) {
+		container_start();
+	}
+	else{
+		FILE *ctl_pid;
+		FILE *con_pid;
+		
+		ctl_pid = fopen("config/controller_pid", "w+");
+		con_pid = fopen("config/container_pid", "w+");
+		fprintf(ctl_pid, "%d\n", getpid());
+		fprintf(con_pid, "%d\n", pid);
+		fclose(con_pid);
+		fclose(ctl_pid);
+		
+		controller_start(&pid);
+	}
 	exit(0);
 }

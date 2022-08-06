@@ -10,7 +10,7 @@
 
 #include "container.h"
 
-#define MAX_PATH_LENGTH 512
+#define MAX_PATH_LENGTH 128
 static char current_path[MAX_PATH_LENGTH];
 
 int init_proc() {
@@ -29,18 +29,18 @@ int init_proc() {
 }
 
 int init_overlay(){ 
-	char root_dir[MAX_PATH_LENGTH];
-	char lower_dir[MAX_PATH_LENGTH];
-	char upper_dir[MAX_PATH_LENGTH];
-	char work_dir[MAX_PATH_LENGTH];
-
-	sprintf(root_dir,  "%s%s", current_path, "/condir/root");
-	sprintf(lower_dir, "%s%s", current_path, "/debian");
-	sprintf(upper_dir, "%s%s", current_path, "/condir/root");
-	sprintf(work_dir,  "%s%s", current_path, "/condir/work");
+	char root_dir[MAX_PATH_LENGTH*2];
+	char lower_dir[MAX_PATH_LENGTH*2];
+	char upper_dir[MAX_PATH_LENGTH*2];
+	char work_dir[MAX_PATH_LENGTH*2];
+	char mount_option[MAX_PATH_LENGTH*6+1];
 	
-	char mount_option[MAX_PATH_LENGTH*2];
+	sprintf(root_dir,  "%s/condir/root", current_path);
+	sprintf(lower_dir, "%s/debian", current_path);
+	sprintf(upper_dir, "%s/condir/diff", current_path);
+	sprintf(work_dir,  "%s/condir/work", current_path);
 	sprintf(mount_option, "lowerdir=%s,upperdir=%s,workdir=%s", lower_dir, upper_dir, work_dir);
+	
 	if(mount("overlay", root_dir, "overlay", 0, mount_option) != 0){ 
 		perror("\x1b[31m[ERROR] mount overlay");
 		return -1;
@@ -49,8 +49,7 @@ int init_overlay(){
 }
 
 int container_start() {
-	getcwd(current_path, MAX_PATH_LENGTH);
-	printf("pwd: %s\n", current_path);
+	getcwd(current_path, MAX_PATH_LENGTH); 
 	
 	if(init_overlay() < 0) {
 		perror("\x1b[31m[ERROR] init overlay");
