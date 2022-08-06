@@ -1,5 +1,7 @@
 #include <linux/capability.h>
+#include <linux/prctl.h>
 #include <sys/capability.h>  
+#include <sys/prctl.h> 
 #include <sys/types.h>
 #include <fcntl.h> 
 #include <stdio.h>
@@ -38,7 +40,7 @@ cap_value_t read_cap_from_file() {
 		int cap;
 		//capability section header
 		if(line[0] == '[') {
-			printf("header: %s", line);
+			//printf("header: %s", line);
 			header = line[1];
 			index = 0;
 		}
@@ -57,17 +59,17 @@ cap_value_t read_cap_from_file() {
 				return -1;
 			}
 			else {
-				printf("line: %d\n", cap);
+				//printf("line: %d\n", cap);
 				if (header == 'I'){
-					cap_conf.inh[index]=cap;
+					cap_conf.inh[index] = cap;
 					cap_conf.inh_count = index;
 				}
 				else if (header == 'E'){
-					cap_conf.eff[index]=cap;
+					cap_conf.eff[index] = cap;
 					cap_conf.eff_count = index;
 				}
 				else if (header == 'P'){
-					cap_conf.prm[index]=cap;
+					cap_conf.prm[index] = cap;
 					cap_conf.prm_count = index;
 				}
 				index++;
@@ -113,28 +115,42 @@ int set_capability() {
 	if(cap_clear_flag(caps, CAP_EFFECTIVE)){
 		perror("\x1b[31m[ERROR]\x1b[0m cap_clear_flag");
 	}
-//cap_set_flag(caps, CAP_PERMITTED, 1, flag, CAP_CLEAR);
-	if(cap_set_flag(caps, CAP_PERMITTED, 10, cap_conf.prm, CAP_SET) == -1){ 
-		perror("\x1b[31m[ERROR]\x1b[0m cap_set_flag prm");
-		return -1;
-	}
-	if(cap_set_flag(caps, CAP_INHERITABLE, 10, cap_conf.inh, CAP_SET) == -1) {
-		perror("\x1b[31m[ERROR]\x1b[0m cap_set_flag inh");
-		return -1;
-	}
-	if(cap_set_flag(caps, CAP_EFFECTIVE, 10, cap_conf.eff, CAP_SET) == -1) {
-		perror("\x1b[31m[ERROR]\x1b[0m cap_set_flag eff");
-	}
-	printf("\x1b[36m[DEBUG]\x1b[0m current capability:%s\n",cap_to_text(caps, NULL));
-	CAP_AMBIENT_SUPPORTED();
 	int i;
+	for (i = 0; i < cap_conf.prm_count;i++){
+		cap_value_t c[1];
+		c[0] = cap_conf.prm[i];
+		if(cap_set_flag(caps, CAP_PERMITTED, 1, c, CAP_SET) == -1){ 
+			perror("\x1b[31m[ERROR]\x1b[0m cap_set_flag prm");
+			return -1;
+		}
+	}
+	for (i = 0; i < cap_conf.inh_count; i++){
+		cap_value_t c[1];
+		c[0] = cap_conf.prm[i];
+		if(cap_set_flag(caps, CAP_INHERITABLE, 1, c, CAP_SET) == -1) {
+			perror("\x1b[31m[ERROR]\x1b[0m cap_set_flag inh");
+			return -1;
+		}
+	}
+	for (i = 0; i < cap_conf.eff_count;i++){
+		cap_value_t c[1];
+		c[0] = cap_conf.prm[i];
+		if(cap_set_flag(caps, CAP_EFFECTIVE, 1, c, CAP_SET) == -1) {
+			perror("\x1b[31m[ERROR]\x1b[0m cap_set_flag eff");
+		}
+	}
+	printf("\x1b[36m[DEBUG]\x1b[0m flag_set capability:%s\n",cap_to_text(caps, NULL));
+	/*CAP_AMBIENT_SUPPORTED();
 	for(i = 0; i < CAP_COUNT; i++){
 		cap_set_ambient(cap_list[i], CAP_SET);
 	}
+	*/
 	if(cap_set_proc(caps) == -1) {
 		perror("\x1b[31m[ERROR]\x1b[0m cap_set_proc");
 		return -1;
 	}
+	printf("prctl:%d\n",prctl(PR_CAPBSET_DROP,CAP_NET_BIND_SERVICE, 0, 0, 0));
+	printf("prctl:%d\n",prctl(PR_CAPBSET_DROP,CAP_NET_RAW, 0, 0, 0));
 	// -- debug --
 	caps = cap_get_proc();
 	printf("\x1b[36m[DEBUG]\x1b[0m capability:%s\n", cap_to_text(caps, NULL));
