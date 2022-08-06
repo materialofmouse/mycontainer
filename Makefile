@@ -8,7 +8,7 @@ setup:
 	
 	@if [ ! -e debian ]; then \
 		echo "\e[36m[INFO]\e[0m: rootfs file: ./debian not found! create..."; \
-		sudo debootstrap --arch amd64 jessie ./debian http://ftp.jp.debian.org/debian; \
+		sudo debootstrap --arch amd64 buster ./debian http://ftp.jp.debian.org/debian; \
 	else \
 	echo "\e[36m[INFO]\e[0m: rootfs file: ./debian found!"; \
 	fi
