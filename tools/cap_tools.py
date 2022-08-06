@@ -34,7 +34,7 @@ class cap_tools:
             elif text is not None and text != "":
                 cap_name = self.capp.cap_name_from_value(int(text))
                 if cap_name is not None:
-                    cap_dict[cap_type].append(self.capp.CAPS[cap_name])
+                    cap_dict[cap_type].append(cap_name)
                 else:
                     pass
             line_count += 1
@@ -111,6 +111,17 @@ class cap_tools:
 
 
 if __name__ == '__main__':
+    option = sys.argv
     tool = cap_tools('./config/capabilities.conf')
     cap_dict = tool.read_from_conf()
+    
+    if option[1] is None or option[1] == "":
+        print(json.dumps(cap_dict))
+    elif option[1] == 'all':
+        tool.add_cap(tool.capp.CAPS.keys(), "Inh")
+        tool.add_cap(tool.capp.CAPS.keys(), "Prm")
+        tool.add_cap(tool.capp.CAPS.keys(), "Eff")
+    elif option[1][0:3] == 'CAP':
+        tool.drop_cap([option[1]], option[2])
+
     print(json.dumps(tool.read_from_conf()))
