@@ -1,4 +1,4 @@
-OBJS = source/container.o source/controller.o source/main.o 
+OBJS = source/container.o source/controller.o source/main.o source/cap_controller.o 
 LIBS = -lcap
 LDFLAGS = -L/lib/x86_64-linux-gnu
 
