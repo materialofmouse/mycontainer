@@ -30,7 +30,6 @@ int main(){
 	if (set_capability() < 0) {
 		perror("\x1b[31m[ERROR]\x1b[0m set cap");
 	}
-
 	//fork
 	//read_cap_from_file();
 	if( (pid = fork()) < 0) {

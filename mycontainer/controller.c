@@ -104,10 +104,10 @@ cap_value_t read_cap_from_file() {
 	return 0;
 }
 
-
+#define CAP_COUNT 16
 int set_capability() {
 	//cap_t caps = cap_init();
-	const cap_value_t cap_list[15] = {
+	const cap_value_t cap_list[CAP_COUNT] = {
 		CAP_CHOWN,
 		CAP_NET_RAW,
 		CAP_FOWNER,
@@ -116,13 +116,14 @@ int set_capability() {
 		CAP_SETGID,
 		CAP_SETUID,
 		CAP_SETPCAP,
-		CAP_NET_BIND_SERVICE,
 		CAP_NET_RAW,
 		CAP_SYS_CHROOT,
 		CAP_SYS_ADMIN,
 		CAP_MKNOD,
 		CAP_AUDIT_WRITE,
 		CAP_SETFCAP,
+		CAP_DAC_OVERRIDE,
+		CAP_DAC_READ_SEARCH,
 	};
 
 	cap_t caps = cap_get_proc();
@@ -141,20 +142,20 @@ int set_capability() {
 		perror("\x1b[31m[ERROR]\x1b[0m cap_clear_flag");
 	}
 //cap_set_flag(caps, CAP_PERMITTED, 1, flag, CAP_CLEAR);
-	if(cap_set_flag(caps, CAP_PERMITTED, 15, cap_list, CAP_SET) == -1){ 
+	if(cap_set_flag(caps, CAP_PERMITTED, CAP_COUNT, cap_list, CAP_SET) == -1){ 
 		perror("\x1b[31m[ERROR]\x1b[0m cap_set_flag prm");
 		return -1;
 	}
-	if(cap_set_flag(caps, CAP_INHERITABLE, 15, cap_list, CAP_SET) == -1) {
+	if(cap_set_flag(caps, CAP_INHERITABLE, CAP_COUNT, cap_list, CAP_SET) == -1) {
 		perror("\x1b[31m[ERROR]\x1b[0m cap_set_flag inh");
 		return -1;
 	}
-	if(cap_set_flag(caps, CAP_EFFECTIVE, 15, cap_list, CAP_SET) == -1) {
+	if(cap_set_flag(caps, CAP_EFFECTIVE, CAP_COUNT, cap_list, CAP_SET) == -1) {
 		perror("\x1b[31m[ERROR]\x1b[0m cap_set_flag eff");
 	}
 	CAP_AMBIENT_SUPPORTED();
 	int i;
-	for(i = 0; i < 15; i++){
+	for(i = 0; i < CAP_COUNT; i++){
 		cap_set_ambient(cap_list[i], CAP_SET);
 	}
 	if(cap_set_proc(caps) == -1) {
