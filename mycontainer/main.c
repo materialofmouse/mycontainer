@@ -9,11 +9,17 @@
 #include "container.h"
 #include "controller.h"
 
+#define ERROR -1
+#define DEBUG 0
+
+
 void log_print(int _status, char* message) {
 	char* status;
-	if (_status == 0) status = "[DEBUG]";
-	else if (_status == -1) status = "[ERROR]";
+	if (_status == 0) status = "\x1b[36m[DEBUG]\x1b[0m";
+	else if (_status == -1) status = "\x1b[31m[ERROR]\x1b[0m";
 	else status = "[ETC]";
+
+	printf("%s %s",status, message);
 }
 
 int main(){
