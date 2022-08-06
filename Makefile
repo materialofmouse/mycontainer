@@ -9,8 +9,8 @@ setup:
 	@if [ ! -e debian ]; then \
 		sudo debootstrap --arch amd64 jessie ./debian http://ftp.jp.debian.org/debian; \
 	fi
-	@if [ ! -d layer ]; then \
-		mkdir -p ./layer/root ./layer/work; ./layer/diff; \
+	@if [ ! -e layer ]; then \
+		mkdir -p ./layer/root ./layer/work ./layer/diff; \
 	fi
 
 build: $(OBJS:.o=.c)
