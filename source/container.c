@@ -34,7 +34,7 @@ int init_overlay(){
 	char upper_dir[MAX_PATH_LENGTH*2];
 	char work_dir[MAX_PATH_LENGTH*2];
 	char mount_option[MAX_PATH_LENGTH*6+1];
-	
+
 	sprintf(root_dir,  "%s/layer/root", current_path);
 	sprintf(lower_dir, "%s/debian", current_path);
 	sprintf(upper_dir, "%s/layer/diff", current_path);
