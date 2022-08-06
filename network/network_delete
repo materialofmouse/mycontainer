@@ -1,6 +1,6 @@
 #!/bin/bash
-set -x
-PID=$(cat ./config/controller_pid)
+#set -x
+PID=$1
 if [ "$PID" == "0" ]; then
 	echo container not found
 	exit 0
