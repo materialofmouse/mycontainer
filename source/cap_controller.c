@@ -1,5 +1,4 @@
 #include <linux/capability.h>
-#include <linux/prctl.h>
 #include <sys/capability.h>  
 #include <sys/prctl.h> 
 #include <sys/types.h>
@@ -21,6 +20,8 @@ struct capabilities {
 	int eff_count;
 	cap_value_t prm[CAP_MAX];
 	int prm_count;
+	cap_value_t bnd[CAP_MAX];
+	int bnd_count;
 };
 static struct capabilities cap_conf;
 
@@ -71,6 +72,10 @@ cap_value_t read_cap_from_file() {
 				else if (header == 'P'){
 					cap_conf.prm[index] = cap;
 					cap_conf.prm_count = index;
+				}
+				else if (header == 'B'){
+					cap_conf.bnd[index] = cap;
+					cap_conf.bnd_count = index;
 				}
 				index++;
 			}
@@ -140,17 +145,13 @@ int set_capability() {
 		}
 	}
 	printf("\x1b[36m[DEBUG]\x1b[0m flag_set capability:%s\n",cap_to_text(caps, NULL));
-	/*CAP_AMBIENT_SUPPORTED();
-	for(i = 0; i < CAP_COUNT; i++){
-		cap_set_ambient(cap_list[i], CAP_SET);
-	}
-	*/
 	if(cap_set_proc(caps) == -1) {
 		perror("\x1b[31m[ERROR]\x1b[0m cap_set_proc");
 		return -1;
 	}
-	printf("prctl:%d\n",prctl(PR_CAPBSET_DROP,CAP_NET_BIND_SERVICE, 0, 0, 0));
-	printf("prctl:%d\n",prctl(PR_CAPBSET_DROP,CAP_NET_RAW, 0, 0, 0));
+	for (i = 0; i < cap_conf.bnd_count; i++){
+		prctl(PR_CAPBSET_DROP, cap_conf.bnd[i], 0, 0, 0);
+	}
 	// -- debug --
 	caps = cap_get_proc();
 	printf("\x1b[36m[DEBUG]\x1b[0m capability:%s\n", cap_to_text(caps, NULL));

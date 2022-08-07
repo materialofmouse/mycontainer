@@ -1,3 +1,4 @@
 #!/bin/bash
-python3 -m http.server &
+nginx -g "daemon off;" &
+#python3 -m http.server &
 /bin/bash

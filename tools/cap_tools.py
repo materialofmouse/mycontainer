@@ -9,6 +9,7 @@ class cap_tools:
     def __init__(self, file_path: str):
         self.file_path = file_path
         self.file_list = []
+        self.cap_dropped =  []
         self.capp = capability.capability()
         self.headers = {
                 'Inh': {'start': -1, 'end': -1},
@@ -47,6 +48,12 @@ class cap_tools:
         cap_number = self.capp.CAPS[cap]
         isFound = False
         index = self.headers[cap_type]['start']
+        diff = self.headers[cap_type]['end'] - index
+        if diff == 1 :
+            self.file_list.insert(index+1, str(cap_number)+'\n')
+            isFound = True
+            return isFound
+            
         while not isFound:
             index += 1
             if index == self.headers[cap_type]['end']:
@@ -85,7 +92,9 @@ class cap_tools:
 
             cap_current = int(self.file_list[index])
             if cap_current == cap_number:
-                __cap = self.file_list.pop(index)
+                self.cap_dropped.append(
+                        self.capp.cap_name_from_value(
+                            int(self.file_list.pop(index).replace("\n",""))))
                 #print("cap drop index:{} caps:{}".format(index, __cap))
                 isFound = True
 
@@ -129,8 +138,10 @@ if __name__ == '__main__':
         tool.add_cap(tool.capp.CAPS.keys(), "Inh")
         tool.add_cap(tool.capp.CAPS.keys(), "Prm")
         tool.add_cap(tool.capp.CAPS.keys(), "Eff")
-        tool.add_cap(tool.capp.CAPS.keys(), "Bnd")
+        tool.drop_cap(tool.capp.CAPS.keys(), "Bnd")
         print(json.dumps(tool.read_from_conf()))
     elif option[1][0:3] == 'CAP':
         tool.drop_cap([option[1]], option[2])
+        tool.add_cap(tool.cap_dropped, "Bnd")
+        tool.cap_dropped = []
         print(json.dumps(tool.read_from_conf()))

@@ -51,6 +51,7 @@ int main(){
 		if (set_capability() < 0) {
 			perror("\x1b[31m[ERROR]\x1b[0m set cap");
 		}
+
 		container_start();
 	}
 	else{
