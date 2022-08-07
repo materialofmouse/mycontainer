@@ -14,6 +14,7 @@ class cap_tools:
                 'Inh': {'start': -1, 'end': -1},
                 'Eff': {'start': -1, 'end': -1},
                 'Prm': {'start': -1, 'end': -1},
+                'Bnd': {'start': -1, 'end': -1},
         }
 
     def read_from_conf(self) -> dict:
@@ -114,14 +115,22 @@ if __name__ == '__main__':
     option = sys.argv
     tool = cap_tools('./config/capabilities.conf')
     cap_dict = tool.read_from_conf()
-    
-    if option[1] is None or option[1] == "":
+ 
+    if len(option) < 2:
+        print("Usage: cap_tools.py OPTION ARGS\n")
+        print("OPTIONS")
+        print("   show : print all capabilities")
+        print("   reset : enable all capabilities.")
+        print("DROP")
+        print("   cap_tools.py CAP_VALUE_T CAP_TYPE : drop capability with CAP_TYPE")
+    elif option[1] == 'show':
         print(json.dumps(cap_dict))
-    elif option[1] == 'all':
+    elif option[1] == 'reset':
         tool.add_cap(tool.capp.CAPS.keys(), "Inh")
         tool.add_cap(tool.capp.CAPS.keys(), "Prm")
         tool.add_cap(tool.capp.CAPS.keys(), "Eff")
+        tool.add_cap(tool.capp.CAPS.keys(), "Bnd")
+        print(json.dumps(tool.read_from_conf()))
     elif option[1][0:3] == 'CAP':
         tool.drop_cap([option[1]], option[2])
-
-    print(json.dumps(tool.read_from_conf()))
+        print(json.dumps(tool.read_from_conf()))
